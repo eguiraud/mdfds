@@ -1,0 +1,32 @@
+cmake_minimum_required(VERSION 3.7)
+project(mdfds CXX)
+
+#---- COMPILATION FLAGS
+set(CMAKE_CXX_STANDARD 11)
+find_package(Threads)
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${CMAKE_THREAD_LIBS_INIT})
+
+#---- FIND ROOT
+list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
+find_package(ROOT REQUIRED COMPONENTS TreePlayer)
+
+#---- FIND GTEST OR DOWNLOAD IT AND COMPILE IT
+enable_testing()
+find_package(GTest)
+if(GTest_FOUND)
+	include_directories(${GTEST_INCLUDE_DIRS})
+else()
+	# Download and install googletest
+	include(ExternalProject)
+	ExternalProject_Add(googletest
+	  GIT_REPOSITORY https://github.com/google/googletest.git
+	  GIT_TAG master
+	  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:string=${CMAKE_BINARY_DIR}/gtest)
+
+	# Add gtest to our build
+	include_directories(${CMAKE_BINARY_DIR}/gtest/include)
+	set(GTEST_BOTH_LIBRARIES ${CMAKE_BINARY_DIR}/gtest/lib/libgtest.a ${CMAKE_BINARY_DIR}/gtest/lib/libgtest_main.a)
+endif(GTest_FOUND)
+
+#--- BUILD TESTS 
+add_subdirectory(tests)
