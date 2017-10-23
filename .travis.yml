@@ -10,3 +10,8 @@ install:
   - docker run --name ub16 -idv ${TRAVIS_BUILD_DIR}:${TRAVIS_BUILD_DIR} rootproject/root-ubuntu16
 
 script: docker exec ub16 bash ${TRAVIS_BUILD_DIR}/.travis-script.sh
+
+# whitelist master branch for branch builds
+branches:
+  only:
+  - master
