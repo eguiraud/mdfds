@@ -6,28 +6,57 @@
 #include <ROOT/RMakeUnique.hxx>
 #include <ROOT/TDataFrame.hxx>
 #include <ROOT/TDataSource.hxx>
+#include <ROOT/TDFUtils.hxx> // GenStaticSeq, StaticSeq
 #include <tuple>
 
-/// \brief a concrete TDataSource implementation that reads MDF files
+/// \brief A concrete TDataSource implementation that reads MDF files
 template <typename... Decoders>
 class TMDFDataSource : public ROOT::Experimental::TDF::TDataSource {
+   using DecoderInd_t = ROOT::Internal::TDF::GenStaticSeq_t<sizeof...(Decoders)>;
+
    unsigned int fNSlots = 0u;
-   std::tuple<Decoders...> fDecoders; // TODO: make sure we do not store references or pointers but concrete values
-   std::vector<TBankDecoder *> fDecoderPtrs;
-   std::vector<std::string> fDecoderNames;
+   std::tuple<Decoders...> fDecoders;
+   std::vector<TBankDecoder *> fDecoderPtrs; // TODO const?
+   std::vector<std::string> fDecoderNames; // TODO const?
 
 public:
-   TMDFDataSource(const std::vector<std::string> &fileNames, Decoders... decoders);
+   TMDFDataSource(const std::vector<std::string> &fileNames)
+      : fDecoders(), fDecoderPtrs(GetDecoderAddresses(DecoderInd_t())), fDecoderNames(GetDecoderNames(DecoderInd_t())) {}
+
    void SetNSlots(unsigned int nSlots) { fNSlots = nSlots; }
-   const std::vector<std::string> &GetColumnNames() const;
-   bool HasColumn(std::string_view) const;
-   std::string GetTypeName(std::string_view) const;
-   std::vector<std::pair<ULong64_t, ULong64_t>> GetEntryRanges();
-   void SetEntry(unsigned int slot, ULong64_t entry);
+
+   const std::vector<std::string> &GetColumnNames() const { return fDecoderNames; }
+
+   bool HasColumn(std::string_view col) const
+   {
+      return std::find(fDecoderNames.begin(), fDecoderNames.end(), col) != fDecoderNames.end();
+   }
+
+   std::string GetTypeName(std::string_view col) const
+   {
+      const auto ind = std::distance(fDecoderNames.begin(), std::find(fDecoderNames.begin(), fDecoderNames.end(), col));
+      return fDecoderPtrs[ind]->GetName();
+   }
+
+   std::vector<std::pair<ULong64_t, ULong64_t>> GetEntryRanges() { return {}; /* TODO */ }
+
+   void SetEntry(unsigned int slot, ULong64_t entry) { /*TODO*/ }
 
 private:
    /// Return a type-erased vector of pointers to pointers to column values - one per slot
-   std::vector<void *> GetColumnReadersImpl(std::string_view name, const std::type_info &);
+   std::vector<void *> GetColumnReadersImpl(std::string_view name, const std::type_info &) { return {}; /*TODO*/ }
+
+   template <int ...S>
+   std::vector<TBankDecoder *> GetDecoderAddresses(ROOT::Internal::TDF::StaticSeq<S...>)
+   {
+      return {static_cast<TBankDecoder *>(&std::get<S>(fDecoders))...};
+   }
+
+   template <int... S>
+   std::vector<std::string> GetDecoderNames(ROOT::Internal::TDF::StaticSeq<S...>) const
+   {
+      return {std::get<S>(fDecoders).GetName()...};
+   }
 };
 
 template <typename... Decoders>
