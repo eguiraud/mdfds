@@ -1,9 +1,10 @@
-#include "gtest/gtest.h"
+#include <TDummyDecoder.hxx>
+#include <TMDFDataSource.hxx>
+#include <gtest/gtest.h>
 
-TEST(MDFDS, NoOp) {
-   int a = 3;
-   int b = a;
-   EXPECT_EQ(a,b);
+TEST(MDFDS, DummyDecoder)
+{
+   TMDFDataSource<TDummyDecoder> ds({});
 }
 
 int main(int argc, char **argv) {
