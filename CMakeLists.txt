@@ -26,5 +26,8 @@ else()
 	set(GTEST_BOTH_LIBRARIES ${CMAKE_BINARY_DIR}/gtest/lib/libgtest.a ${CMAKE_BINARY_DIR}/gtest/lib/libgtest_main.a)
 endif(GTest_FOUND)
 
-#--- BUILD TESTS 
+#--- BUILD MDFDS
+add_subdirectory(src)
+
+#--- BUILD TESTS
 add_subdirectory(tests)
