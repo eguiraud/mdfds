@@ -4,7 +4,13 @@
 
 TEST(MDFDS, DummyDecoder)
 {
-   TMDFDataSource<TDummyDecoder> ds({});
+   // file does not have to exist
+   TMDFDataSource<TDummyDecoder> ds({"file.raw"});
+}
+
+TEST(MDFDS, DummyDecoderTDF)
+{
+   auto tdf = MakeMDFDataFrame({"file.raw"});
 }
 
 int main(int argc, char **argv) {

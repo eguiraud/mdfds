@@ -18,10 +18,12 @@ class TMDFDataSource : public ROOT::Experimental::TDF::TDataSource {
    std::tuple<Decoders...> fDecoders;
    std::vector<TBankDecoder *> fDecoderPtrs; // TODO const?
    std::vector<std::string> fDecoderNames; // TODO const?
+   std::vector<std::string> fFileNames;
 
 public:
    TMDFDataSource(const std::vector<std::string> &fileNames)
-      : fDecoders(), fDecoderPtrs(GetDecoderAddresses(DecoderInd_t())), fDecoderNames(GetDecoderNames(DecoderInd_t())) {}
+      : fDecoders(), fDecoderPtrs(GetDecoderAddresses(DecoderInd_t())), fDecoderNames(GetDecoderNames(DecoderInd_t())),
+        fFileNames(fileNames) {}
 
    void SetNSlots(unsigned int nSlots) { fNSlots = nSlots; }
 
@@ -60,10 +62,9 @@ private:
 };
 
 template <typename... Decoders>
-ROOT::Experimental::TDataFrame MakeMDFDataFrame(const std::vector<std::string> &fileNames, Decoders... decoders)
+ROOT::Experimental::TDataFrame MakeMDFDataFrame(const std::vector<std::string> &fileNames)
 {
-   return ROOT::Experimental::TDataFrame(
-      std::make_unique<TMDFDataSource<Decoders...>>(fileNames, std::forward<Decoders>(decoders)...));
+   return ROOT::Experimental::TDataFrame(std::make_unique<TMDFDataSource<Decoders...>>(fileNames));
 }
 
 #endif
