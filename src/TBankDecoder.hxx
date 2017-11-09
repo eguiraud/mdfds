@@ -17,7 +17,7 @@ public:
    /// Retrieve bank ID.
    virtual int GetID() const = 0;
    /// Take a bank, return its decoding
-   virtual void *Decode(const char *bank) const = 0;
+   virtual void Decode(const char *bank, void *destination) const = 0;
    /// Allocate N objects of the correct type, after checking that we expect the right type
    virtual std::vector<void *> Allocate(unsigned int N, const std::type_info &expectedType) const = 0;
    /// Deallocate objects by calling the destructor for the appropriate type
