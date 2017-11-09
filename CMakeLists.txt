@@ -17,9 +17,9 @@ else()
 	# Download and install googletest
 	include(ExternalProject)
 	ExternalProject_Add(googletest
-	  GIT_REPOSITORY https://github.com/google/googletest.git
-	  GIT_TAG master
-	  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:string=${CMAKE_BINARY_DIR}/gtest)
+		URL https://github.com/google/googletest/archive/release-1.8.0.zip
+		URL_HASH SHA256=f3ed3b58511efd272eb074a3a6d6fb79d7c2e6a0e374323d1e6bcbcc1ef141bf
+		CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:string=${CMAKE_BINARY_DIR}/gtest)
 
 	# Add gtest to our build
 	include_directories(${CMAKE_BINARY_DIR}/gtest/include)
