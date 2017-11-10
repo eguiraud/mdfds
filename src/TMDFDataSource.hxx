@@ -2,6 +2,7 @@
 #define TMDFDATASOURCE
 
 #include "TBankDecoder.hxx"
+#include "TRecordReader.hxx"
 
 #include <ROOT/RMakeUnique.hxx>
 #include <ROOT/TDataFrame.hxx>
@@ -19,6 +20,7 @@ class TMDFDataSource : public ROOT::Experimental::TDF::TDataSource {
    std::vector<TBankDecoder *> fDecoderPtrs; // TODO const?
    std::vector<std::string> fDecoderNames; // TODO const?
    std::vector<std::string> fFileNames;
+   std::vector<RecordReader> fRecordReaders; ///< per-slot file buffers, used to traverse and read the input files
 
 public:
    TMDFDataSource(const std::vector<std::string> &fileNames)
@@ -43,6 +45,17 @@ public:
    std::vector<std::pair<ULong64_t, ULong64_t>> GetEntryRanges() { return {}; /* TODO */ }
 
    void SetEntry(unsigned int slot, ULong64_t entry) { /*TODO*/ }
+
+   // TODO refactor following methods, make private
+   bool NextRecord(unsigned int slot = 0u)
+   {
+      fRecordReaders[slot].NextRecord();
+   }
+
+   RecordReader &GetRecordReader(unsigned int slot = 0u)
+   {
+      return fRecordReaders[0];
+   }
 
 private:
    /// Return a type-erased vector of pointers to pointers to column values - one per slot
