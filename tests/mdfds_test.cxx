@@ -17,7 +17,7 @@ TEST(MDFDS, DummyDecoderTDF)
    auto tdf = MakeMDFDataFrame({"file.raw"});
 }
 
-TEST(MDFDS, ReadRecords)
+TEST(MDFDS, DISABLED_ReadRecords)
 {
    const auto fname = "";
    const auto fileExists = !gSystem->AccessPathName(fname); // weird return value convention
