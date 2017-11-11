@@ -12,7 +12,7 @@ TEST(MDFDS, DummyDecoder)
    TMDFDataSource<TDummyDecoder> ds({"file.raw"});
 }
 
-TEST(MDFDS, DummyDecoderTDF)
+TEST(MDFDS, DISABLED_DummyDecoderTDF)
 {
    auto tdf = MakeMDFDataFrame({"file.raw"});
 }
