@@ -4,6 +4,7 @@
 #include "TBankDecoder.hxx"
 #include "TRecordReader.hxx"
 
+#include <ROOT/RMakeUnique.hxx>
 #include <ROOT/TDataFrame.hxx>
 #include <ROOT/TDataSource.hxx>
 #include <ROOT/TDFUtils.hxx> // GenStaticSeq, StaticSeq
@@ -76,8 +77,7 @@ private:
 template <typename... Decoders>
 ROOT::Experimental::TDataFrame MakeMDFDataFrame(const std::vector<std::string> &fileNames)
 {
-   return ROOT::Experimental::TDataFrame(
-      std::unique_ptr<TMDFDataSource<Decoders...>>(new TMDFDataSource<Decoders...>(fileNames)));
+   return ROOT::Experimental::TDataFrame(std::make_unique<TMDFDataSource<Decoders...>>(fileNames));
 }
 
 #endif
