@@ -5,7 +5,9 @@
 RecordReader::RecordReader(const std::string &fname)
 {
    fFileBuf.open(fname, std::ios_base::in); // TODO check file was opened correctly
-   fRecordSize = GetRecordSize();
+   fRecordSize = EvalRecordSize();
+   if (fRecordSize == 0u)
+      throw std::runtime_error("invalid record at position " + std::to_string(fCurrentRecord));
 }
 
 bool RecordReader::NextRecord()

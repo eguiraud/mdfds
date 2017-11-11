@@ -25,7 +25,11 @@ class TMDFDataSource : public ROOT::Experimental::TDF::TDataSource {
 public:
    TMDFDataSource(const std::vector<std::string> &fileNames)
       : fDecoders(), fDecoderPtrs(GetDecoderAddresses(DecoderInd_t())), fDecoderNames(GetDecoderNames(DecoderInd_t())),
-        fFileNames(fileNames) {}
+        fFileNames(fileNames)
+   {
+      if (fFileNames.empty())
+         throw std::invalid_argument("empty list of files");
+   }
 
    void SetNSlots(unsigned int nSlots)
    {
