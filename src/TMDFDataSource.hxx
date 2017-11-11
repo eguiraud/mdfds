@@ -34,7 +34,9 @@ public:
    void SetNSlots(unsigned int nSlots)
    {
       fNSlots = nSlots;
-      fRecordReaders.resize(fNSlots);
+      fRecordReaders.reserve(fNSlots);
+      for (auto i = 0u; i < fNSlots; ++i)
+         fRecordReaders.emplace_back(fFileNames[0]);
    }
 
    const std::vector<std::string> &GetColumnNames() const { return fDecoderNames; }
