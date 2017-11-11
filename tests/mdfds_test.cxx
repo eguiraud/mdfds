@@ -24,9 +24,13 @@ TEST(MDFDS, DISABLED_ReadRecords)
    ASSERT_TRUE(fileExists) << "Could not run test: test file not found.";
 
    TMDFDataSource<> ds({fname});
+   ds.SetNSlots(1u);
+   auto counter = 0u;
    while (ds.NextRecord()) {
+      ++counter;
       auto &r = ds.GetRecordReader();
-      std::cout << "current position: " << r.GetRecordPosition() << std::endl;
+      std::cout << counter << "\t\t current position: " << r.GetRecordPosition()
+                << "\t record size: " << r.GetRecordSize() << '\n';
    }
 }
 
