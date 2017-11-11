@@ -24,10 +24,9 @@ unsigned int RecordReader::EvalRecordSize()
    // TODO also check checksum
    fFileBuf.pubseekpos(fCurrentRecord);
    std::array<unsigned int, 3> recordSizes;
-   for (auto i = 0u; i < 3; ++i) {
+   for (auto i = 0u; i < 3; ++i)
       fFileBuf.sgetn(reinterpret_cast<char *>(&recordSizes[i]), 4);
-      std::cerr << "record size: " << recordSizes[i] << "\n"; // TODO make this a debug print
-   }
+
    if (recordSizes[2] == recordSizes[0] || recordSizes[2] == recordSizes[1])
       return recordSizes[2];
    else if (recordSizes[0] == recordSizes[1])
