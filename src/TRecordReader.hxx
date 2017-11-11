@@ -3,7 +3,7 @@
 
 #include <fstream> // std::filebuf
 
-class RecordReader {
+class TRecordReader {
 public:
    using pos_type = std::filebuf::pos_type;
 
@@ -15,11 +15,11 @@ private:
    unsigned int EvalRecordSize();
 
 public:
-   RecordReader(const RecordReader &) = default;
-   RecordReader(RecordReader &&) = default;
-   RecordReader &operator=(const RecordReader &) = default;
-   RecordReader &operator=(RecordReader &&) = default;
-   RecordReader(const std::string &fname);
+   TRecordReader(const TRecordReader &) = default;
+   TRecordReader(TRecordReader &&) = default;
+   TRecordReader &operator=(const TRecordReader &) = default;
+   TRecordReader &operator=(TRecordReader &&) = default;
+   TRecordReader(const std::string &fname);
    /// Move this RecordReader to the next valid record in the file. Return false if there are no further records.
    bool NextRecord();
    /// Return position of the current record

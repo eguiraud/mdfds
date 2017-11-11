@@ -2,7 +2,7 @@
 #include <array>
 #include <iostream>
 
-RecordReader::RecordReader(const std::string &fname)
+TRecordReader::TRecordReader(const std::string &fname)
 {
    fFileBuf.open(fname, std::ios_base::in); // TODO check file was opened correctly
    fRecordSize = EvalRecordSize();
@@ -10,7 +10,7 @@ RecordReader::RecordReader(const std::string &fname)
       throw std::runtime_error("invalid record at position " + std::to_string(fCurrentRecord));
 }
 
-bool RecordReader::NextRecord()
+bool TRecordReader::NextRecord()
 {
    fCurrentRecord = fFileBuf.pubseekpos(fCurrentRecord + std::streamoff(fRecordSize));
    if (fFileBuf.sgetc() == decltype(fFileBuf)::traits_type::eof())
@@ -19,7 +19,7 @@ bool RecordReader::NextRecord()
    return true;
 }
 
-unsigned int RecordReader::EvalRecordSize()
+unsigned int TRecordReader::EvalRecordSize()
 {
    // TODO also check checksum
    fFileBuf.pubseekpos(fCurrentRecord);

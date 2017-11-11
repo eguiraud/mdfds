@@ -20,7 +20,7 @@ class TMDFDataSource : public ROOT::Experimental::TDF::TDataSource {
    std::vector<TBankDecoder *> fDecoderPtrs; // TODO const?
    std::vector<std::string> fDecoderNames; // TODO const?
    std::vector<std::string> fFileNames;
-   std::vector<RecordReader> fRecordReaders; ///< per-slot file buffers, used to traverse and read the input files
+   std::vector<TRecordReader> fRecordReaders; ///< per-slot file buffers, used to traverse and read the input files
 
 public:
    TMDFDataSource(const std::vector<std::string> &fileNames)
