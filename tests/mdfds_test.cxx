@@ -9,17 +9,17 @@
 TEST(MDFDS, DummyDecoder)
 {
    // file does not have to exist
-   TMDFDataSource<TDummyDecoder> ds({"file.raw"});
+   TMDFDataSource<TDummyDecoder> ds({"small.raw"});
 }
 
-TEST(MDFDS, DISABLED_DummyDecoderTDF)
+TEST(MDFDS, DummyDecoderTDF)
 {
-   auto tdf = MakeMDFDataFrame({"file.raw"});
+   auto tdf = MakeMDFDataFrame({"small.raw"});
 }
 
-TEST(MDFDS, DISABLED_ReadRecords)
+TEST(MDFDS, ReadRecords)
 {
-   const auto fname = "";
+   const auto fname = "small.raw";
    const auto fileExists = !gSystem->AccessPathName(fname); // weird return value convention
    ASSERT_TRUE(fileExists) << "Could not run test: test file not found.";
 
@@ -29,13 +29,9 @@ TEST(MDFDS, DISABLED_ReadRecords)
    while (ds.NextRecord()) {
       ++counter;
       auto &r = ds.GetRecordReader();
-      std::cout << counter << "\t\t current position: " << r.GetRecordPosition()
+      std::cout << counter << "\t current position: " << r.GetRecordPosition()
                 << "\t record size: " << r.GetRecordSize() << '\n';
    }
-}
-
-TEST(MDFDS, GetBank)
-{
 }
 
 int main(int argc, char **argv)
