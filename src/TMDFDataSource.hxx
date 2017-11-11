@@ -56,17 +56,6 @@ public:
 
    void SetEntry(unsigned int slot, ULong64_t entry) { /*TODO*/ }
 
-   // TODO refactor following methods, make private
-   bool NextRecord(unsigned int slot = 0u)
-   {
-      fRecordReaders[slot].NextRecord();
-   }
-
-   RecordReader &GetRecordReader(unsigned int slot = 0u)
-   {
-      return fRecordReaders[0];
-   }
-
 private:
    /// Return a type-erased vector of pointers to pointers to column values - one per slot
    std::vector<void *> GetColumnReadersImpl(std::string_view name, const std::type_info &) { return {}; /*TODO*/ }
