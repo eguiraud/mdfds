@@ -27,7 +27,11 @@ public:
       : fDecoders(), fDecoderPtrs(GetDecoderAddresses(DecoderInd_t())), fDecoderNames(GetDecoderNames(DecoderInd_t())),
         fFileNames(fileNames) {}
 
-   void SetNSlots(unsigned int nSlots) { fNSlots = nSlots; }
+   void SetNSlots(unsigned int nSlots)
+   {
+      fNSlots = nSlots;
+      fRecordReaders.resize(fNSlots);
+   }
 
    const std::vector<std::string> &GetColumnNames() const { return fDecoderNames; }
 
