@@ -24,6 +24,7 @@ else()
 	# Add gtest to our build
 	include_directories(${CMAKE_BINARY_DIR}/gtest/include)
 	set(GTEST_BOTH_LIBRARIES ${CMAKE_BINARY_DIR}/gtest/lib/libgtest.a ${CMAKE_BINARY_DIR}/gtest/lib/libgtest_main.a)
+	set(EXTERNAL_GTEST TRUE)
 endif(GTest_FOUND)
 
 #--- BUILD MDFDS
