@@ -11,7 +11,7 @@ private:
    std::filebuf fFileBuf;         ///< stream buffer
    pos_type fCurrentRecord = 0;   ///< position of current record in file
    unsigned int fRecordSize = 0u; ///< size of current record
-   /// Get size of current record, return 0 if record is corrupted
+   /// Get size of current record, or 0 if record is corrupted
    unsigned int EvalRecordSize();
 
 public:

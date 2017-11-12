@@ -15,8 +15,10 @@ bool TRecordReader::NextRecord()
    if (fFileBuf.sgetc() == decltype(fFileBuf)::traits_type::eof())
       return false;
    fRecordSize = EvalRecordSize();
-   if (fRecordSize == 0u)
-      throw std::runtime_error("invalid record at position " + std::to_string(fCurrentRecord));
+   if (fRecordSize == 0u) {
+      std::cerr << "warning: corrupted record encountered at position " << fCurrentRecord << ", aborting.";
+      return false;
+   }
    return true;
 }
 
