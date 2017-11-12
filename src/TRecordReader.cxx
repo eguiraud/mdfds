@@ -4,10 +4,7 @@
 
 TRecordReader::TRecordReader(const std::string &fname)
 {
-   fFileBuf.open(fname, std::ios_base::in); // TODO check file was opened correctly
-   fRecordSize = EvalRecordSize();
-   if (fRecordSize == 0u)
-      throw std::runtime_error("invalid record at position " + std::to_string(fCurrentRecord));
+   const auto okay = fFileBuf.open(fname, std::ios_base::in);
 }
 
 bool TRecordReader::NextRecord()
@@ -16,6 +13,8 @@ bool TRecordReader::NextRecord()
    if (fFileBuf.sgetc() == decltype(fFileBuf)::traits_type::eof())
       return false;
    fRecordSize = EvalRecordSize();
+   if (fRecordSize == 0u)
+      throw std::runtime_error("invalid record at position " + std::to_string(fCurrentRecord));
    return true;
 }
 
