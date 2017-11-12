@@ -5,6 +5,8 @@
 TRecordReader::TRecordReader(const std::string &fname)
 {
    const auto okay = fFileBuf.open(fname, std::ios_base::in);
+   if (!okay)
+      throw std::runtime_error("could not open file " + fname);
 }
 
 bool TRecordReader::NextRecord()
