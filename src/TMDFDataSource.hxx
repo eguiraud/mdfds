@@ -18,7 +18,7 @@ class TMDFDataSource : public ROOT::Experimental::TDF::TDataSource {
    unsigned int fNSlots = 0u;
    std::tuple<Decoders...> fDecoders;
    std::vector<TBankDecoder *> fDecoderPtrs; // TODO const?
-   std::vector<std::string> fDecoderNames; // TODO const?
+   std::vector<std::string> fDecoderNames;   // TODO const?
    std::vector<std::string> fFileNames;
    std::vector<TRecordReader> fRecordReaders; ///< per-slot file buffers, used to traverse and read the input files
 
@@ -54,13 +54,13 @@ public:
 
    std::vector<std::pair<ULong64_t, ULong64_t>> GetEntryRanges() { return {}; /* TODO */ }
 
-   void SetEntry(unsigned int slot, ULong64_t entry) { /*TODO*/ }
+   void SetEntry(unsigned int slot, ULong64_t entry) { /*TODO*/}
 
 private:
    /// Return a type-erased vector of pointers to pointers to column values - one per slot
    std::vector<void *> GetColumnReadersImpl(std::string_view name, const std::type_info &) { return {}; /*TODO*/ }
 
-   template <int ...S>
+   template <int... S>
    std::vector<TBankDecoder *> GetDecoderAddresses(ROOT::Internal::TDF::StaticSeq<S...>)
    {
       return {static_cast<TBankDecoder *>(&std::get<S>(fDecoders))...};

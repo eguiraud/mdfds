@@ -41,7 +41,6 @@ public:
    /// Return header information for the current bank
    BankHeader GetBankHeader() { return fBankHeader; }
 
-
 private:
    /// Extract information from the bank header
    BankHeader ReadBankHeader();

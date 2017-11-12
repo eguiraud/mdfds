@@ -59,7 +59,8 @@ bool TRecordReader::NextBank()
       // jump to next bank
       const auto bankSize = fBankHeader.size;
       const auto paddingBytes = (4 - (bankSize % 4)) % 4; // bytes required to make the next bank 32-bit aligned
-      fCurrentBank = fFileBuf.pubseekpos(fCurrentBank + std::streamoff(fBankHeader.size) + std::streamoff(paddingBytes));
+      fCurrentBank =
+         fFileBuf.pubseekpos(fCurrentBank + std::streamoff(fBankHeader.size) + std::streamoff(paddingBytes));
       if (fCurrentBank >= recordEnd)
          return false;
    }
