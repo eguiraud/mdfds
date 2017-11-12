@@ -23,7 +23,7 @@ class TMDFDataSource : public ROOT::Experimental::TDF::TDataSource {
    std::vector<TRecordReader> fRecordReaders; ///< per-slot file buffers, used to traverse and read the input files
 
 public:
-   TMDFDataSource(const std::vector<std::string> &fileNames)
+   explicit TMDFDataSource(const std::vector<std::string> &fileNames)
       : fDecoders(), fDecoderPtrs(GetDecoderAddresses(DecoderInd_t())), fDecoderNames(GetDecoderNames(DecoderInd_t())),
         fFileNames(fileNames)
    {

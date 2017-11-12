@@ -20,7 +20,7 @@ public:
    TRecordReader(TRecordReader &&) = default;
    TRecordReader &operator=(const TRecordReader &) = default;
    TRecordReader &operator=(TRecordReader &&) = default;
-   TRecordReader(const std::string &fname);
+   explicit TRecordReader(const std::string &fname);
    /// Move this RecordReader to the next valid record in the file. Return false if there are no further records.
    bool NextRecord();
    /// Move this RecordReader to the next bank in the record. Return false if there are no further banks.
