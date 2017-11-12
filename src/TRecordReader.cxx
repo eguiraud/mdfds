@@ -11,6 +11,7 @@ TRecordReader::TRecordReader(const std::string &fname)
 
 bool TRecordReader::NextRecord()
 {
+   fBankHeader = BankHeader(); // reset current bank header information
    fCurrentRecord = fFileBuf.pubseekpos(fCurrentRecord + std::streamoff(fRecordSize));
    if (fFileBuf.sgetc() == decltype(fFileBuf)::traits_type::eof())
       return false;
@@ -36,4 +37,46 @@ unsigned int TRecordReader::EvalRecordSize()
       return recordSizes[0];
    else
       return 0u;
+}
+
+bool TRecordReader::NextBank()
+{
+   const auto recordEnd = fCurrentRecord + std::streamoff(fRecordSize);
+   if (fBankHeader.size == 0u) {
+      // jump to the end of the general record header (20 bytes long)
+      auto pos = fFileBuf.pubseekpos(fCurrentRecord + std::streamoff(20));
+      // find first bank, i.e. first occurrence of the magic number
+      unsigned int magic = 0u;
+      fFileBuf.sgetn(reinterpret_cast<char *>(&magic), 2);
+      while (magic != 0xcbcb && pos < recordEnd) {
+         pos = fFileBuf.pubseekoff(2, std::ios_base::cur);
+         fFileBuf.sgetn(reinterpret_cast<char *>(&magic), 2);
+      }
+      if (magic != 0xcbcb) // no bank found
+         return false;
+      fCurrentBank = pos;
+   } else {
+      // jump to next bank
+      const auto bankSize = fBankHeader.size;
+      const auto paddingBytes = (4 - (bankSize % 4)) % 4; // bytes required to make the next bank 32-bit aligned
+      fCurrentBank = fFileBuf.pubseekpos(fCurrentBank + std::streamoff(fBankHeader.size) + std::streamoff(paddingBytes));
+      if (fCurrentBank >= recordEnd)
+         return false;
+   }
+   fBankHeader = ReadBankHeader();
+   return true;
+}
+
+BankHeader TRecordReader::ReadBankHeader()
+{
+   BankHeader h;
+   fFileBuf.pubseekpos(fCurrentBank);
+   unsigned int magic = 0u;
+   fFileBuf.sgetn(reinterpret_cast<char *>(&magic), 2);
+   if (magic != 0xcbcb)
+      throw std::runtime_error("bank header does not start with magic pattern");
+   fFileBuf.sgetn(reinterpret_cast<char *>(&h.size), 2);
+   fFileBuf.sgetn(reinterpret_cast<char *>(&h.type), 1);
+   fFileBuf.sgetn(reinterpret_cast<char *>(&h.version), 1);
+   return h;
 }
