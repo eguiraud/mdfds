@@ -49,7 +49,7 @@ public:
    std::string GetTypeName(std::string_view col) const
    {
       const auto ind = std::distance(fDecoderNames.begin(), std::find(fDecoderNames.begin(), fDecoderNames.end(), col));
-      return fDecoderPtrs[ind]->GetName();
+      return fDecoderPtrs[ind]->GetTypeName();
    }
 
    std::vector<std::pair<ULong64_t, ULong64_t>> GetEntryRanges() { return {}; /* TODO */ }
