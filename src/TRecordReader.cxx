@@ -23,22 +23,6 @@ bool TRecordReader::NextRecord()
    return true;
 }
 
-unsigned int TRecordReader::EvalRecordSize()
-{
-   // TODO also check checksum
-   fFileBuf.pubseekpos(fCurrentRecord);
-   std::array<unsigned int, 3> recordSizes;
-   for (auto i = 0u; i < 3; ++i)
-      fFileBuf.sgetn(reinterpret_cast<char *>(&recordSizes[i]), 4);
-
-   if (recordSizes[2] == recordSizes[0] || recordSizes[2] == recordSizes[1])
-      return recordSizes[2];
-   else if (recordSizes[0] == recordSizes[1])
-      return recordSizes[0];
-   else
-      return 0u;
-}
-
 bool TRecordReader::NextBank()
 {
    const auto recordEnd = fCurrentRecord + std::streamoff(fRecordSize);
@@ -80,6 +64,20 @@ BankHeader TRecordReader::ReadBankHeader()
    fFileBuf.sgetn(reinterpret_cast<char *>(&h.type), 1);
    fFileBuf.sgetn(reinterpret_cast<char *>(&h.version), 1);
    return h;
+}
+
+unsigned int TRecordReader::EvalRecordSize()
+{
+   // TODO also check checksum
+   std::array<unsigned int, 3> recordSizes;
+   fFileBuf.sgetn(reinterpret_cast<char *>(&recordSizes[0]), 12);
+
+   if (recordSizes[2] == recordSizes[0] || recordSizes[2] == recordSizes[1])
+      return recordSizes[2];
+   else if (recordSizes[0] == recordSizes[1])
+      return recordSizes[0];
+   else
+      return 0u;
 }
 
 std::vector<char> TRecordReader::GetBankBody() {

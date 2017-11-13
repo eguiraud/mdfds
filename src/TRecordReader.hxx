@@ -20,8 +20,6 @@ private:
    unsigned int fRecordSize = 0u; ///< Size of current record
    pos_type fCurrentBank = 0;     ///< Position of current bank in file
    BankHeader fBankHeader;        ///< Header information for the current header
-   /// Get size of current record, or 0 if record is corrupted
-   unsigned int EvalRecordSize();
 
 public:
    TRecordReader(const TRecordReader &) = default;
@@ -45,6 +43,8 @@ public:
    std::vector<char> GetBankBody();
 
 private:
+   /// Get size of current record, or 0 if record is corrupted
+   unsigned int EvalRecordSize();
    /// Extract information from the bank header
    BankHeader ReadBankHeader();
 };
