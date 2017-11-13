@@ -22,9 +22,9 @@ private:
    BankHeader fBankHeader;        ///< Header information for the current header
 
 public:
-   TRecordReader(const TRecordReader &) = default;
+   TRecordReader(const TRecordReader &) = delete; // std::filebuf is not copy-constructible
    TRecordReader(TRecordReader &&) = default;
-   TRecordReader &operator=(const TRecordReader &) = default;
+   TRecordReader &operator=(const TRecordReader &) = delete; // std::filebuf is not copy-assignable
    TRecordReader &operator=(TRecordReader &&) = default;
    explicit TRecordReader(const std::string &fname);
    /// Move this RecordReader to the next valid record in the file. Return false if there are no further records.
