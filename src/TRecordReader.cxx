@@ -23,6 +23,22 @@ bool TRecordReader::NextRecord()
    return true;
 }
 
+bool TRecordReader::SeekRecordAt(pos_type pos)
+{
+   fBankHeader = BankHeader();
+   fCurrentRecord = fFileBuf.pubseekpos(pos);
+   if (fCurrentRecord < 0) {
+      std::cerr << "warning: invalid position passed to SeekRecordAt, aborting.\n";
+      return false;
+   }
+   fRecordSize = EvalRecordSize();
+   if (fRecordSize == 0u) {
+      std::cerr << "warning: corrupted record encountered at position " << fCurrentRecord << ", aborting.\n";
+      return false;
+   }
+   return true;
+}
+
 bool TRecordReader::NextBank()
 {
    const auto recordEnd = fCurrentRecord + std::streamoff(fRecordSize);

@@ -29,6 +29,9 @@ public:
    explicit TRecordReader(const std::string &fname);
    /// Move this RecordReader to the next valid record in the file. Return false if there are no further records.
    bool NextRecord();
+   /// Move this RecordReader to the record at position pos.
+   /// Return false if the contents at this position do not look like a record header (prone to rare false negatives).
+   bool SeekRecordAt(pos_type pos);
    /// Return position of the current record
    pos_type GetRecordPosition() const { return fCurrentRecord; }
    /// Return size of current record, or 0 if no record has been read yet
