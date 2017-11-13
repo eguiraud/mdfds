@@ -39,6 +39,17 @@ TEST(MDFDS, GetEntryRangesMT)
    }
 }
 
+TEST(MDFDS, GetColumnReadersMT)
+{
+   TMDFDataSource<TDummyDecoder> ds({"small.raw"});
+   ds.SetNSlots(4u);
+   const std::vector<int **> readers = ds.GetColumnReaders<int>("dummy");
+   for (auto &r : readers) {
+      EXPECT_NE(r, nullptr);
+      (void)**r; // check we can dereference twice without crashing
+   }
+}
+
 int main(int argc, char **argv)
 {
    ::testing::InitGoogleTest(&argc, argv);
