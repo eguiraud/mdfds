@@ -7,6 +7,7 @@ class TDummyDecoder : public TBankDecoder {
 public:
    std::string GetName() const final { return "dummy"; }
    std::string GetTypeName() const final { return "int"; }
+   const std::type_info &GetTypeInfo() const { return typeid(int); }
    int GetID() const final { return 123456; }
    void Decode(const char *, void *destination) const final { *static_cast<int *>(destination) = 42; }
    void *Allocate() const final;
