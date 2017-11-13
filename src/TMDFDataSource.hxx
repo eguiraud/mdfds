@@ -16,20 +16,28 @@ class TMDFDataSource : public ROOT::Experimental::TDF::TDataSource {
    using DecoderInd_t = ROOT::Internal::TDF::GenStaticSeq_t<sizeof...(Decoders)>;
 
    unsigned int fNSlots = 0u;
+   // TODO check we are using the tuple and not the pointers to decoders in the event loop
+   /// Tuple of objects of types inheriting from TBankDecoders.
    std::tuple<Decoders...> fDecoders;
-   const std::vector<TBankDecoder *> fDecoderPtrs; // TODO const?
-   const std::vector<std::string> fDecoderNames;   // TODO const?
+   /// List of pointers to the decoders, with the same ordering as the decoders in fDecoders
+   const std::vector<TBankDecoder *> fDecoderPtrs;
+   /// List of decoder names (i.e. column names), with the same ordering as the decoders in fDecoders
+   const std::vector<std::string> fDecoderNames;
+   /// List of decoder ids (i.e. bank type), with same ordering as the decoders in fDecoders
+   const std::vector<int> fDecoderIDs;
+   /// List of files we will loop over
    const std::vector<std::string> fFileNames;
-   std::vector<TRecordReader> fRecordReaders; ///< Per-slot record readers
    /// Index of the current file being processed in fFileNames
    std::size_t fCurrentFile = std::numeric_limits<std::size_t>::max();
+   /// Per-slot record readers
+   std::vector<TRecordReader> fRecordReaders;
    /// Per-slot pointers to column values. Use as fColumnValues[slot][columnIndex].
    std::vector<std::vector<void *>> fColumnValues;
 
 public:
    explicit TMDFDataSource(const std::vector<std::string> &fileNames)
       : fDecoders(), fDecoderPtrs(GetDecoderAddresses(DecoderInd_t())), fDecoderNames(GetDecoderNames(DecoderInd_t())),
-        fFileNames(fileNames)
+        fDecoderIDs(GetDecoderIDs(DecoderInd_t())), fFileNames(fileNames)
    {
       if (fFileNames.empty())
          throw std::invalid_argument("empty list of files");
@@ -111,6 +119,7 @@ private:
       return columnPtrPtrs;
    }
 
+   // TODO refactor these to avoid code repetition
    template <int... S>
    std::vector<TBankDecoder *> GetDecoderAddresses(ROOT::Internal::TDF::StaticSeq<S...>)
    {
@@ -121,6 +130,12 @@ private:
    std::vector<std::string> GetDecoderNames(ROOT::Internal::TDF::StaticSeq<S...>) const
    {
       return {std::get<S>(fDecoders).GetName()...};
+   }
+
+   template <int... S>
+   std::vector<int> GetDecoderIDs(ROOT::Internal::TDF::StaticSeq<S...>) const
+   {
+      return {std::get<S>(fDecoders).GetID()...};
    }
 };
 
