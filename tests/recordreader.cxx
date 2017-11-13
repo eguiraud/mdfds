@@ -42,7 +42,6 @@ TEST(RecordReader, ReadBankBody)
    TRecordReader r(fname);
    r.NextRecord();
    for (auto bankn = 0u; r.NextBank(); ++bankn) {
-      auto bankHeader = r.GetBankHeader();
       auto body = r.GetBankBody();
       std::cout << "    bank " << with_width(7) << bankn << " size: " << with_width(6) << body.size() << '\n';
       for (auto byte : body) {

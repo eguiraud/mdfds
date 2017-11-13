@@ -93,14 +93,14 @@ public:
       return entryRanges;
    }
 
-   void SetEntry(unsigned int slot, ULong64_t entry) { /*TODO*/}
+   void SetEntry(unsigned int, ULong64_t) { /*TODO*/}
 
 private:
    /// Return a type-erased vector of pointers to pointers to column values - one per slot
    std::vector<void *> GetColumnReadersImpl(std::string_view name, const std::type_info &)
    {
       std::vector<void *> columnPtrPtrs(fNSlots);
-      const auto ind =
+      const std::size_t ind =
          std::distance(fDecoderNames.begin(), std::find(fDecoderNames.begin(), fDecoderNames.end(), name));
       if (ind == fDecoderNames.size()) {
          std::cerr << "warning: could not find \"" << name << "\", no readers returned";

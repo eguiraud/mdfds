@@ -33,7 +33,7 @@ TEST(MDFDS, GetEntryRangesMT)
    const auto ranges = ds.GetEntryRanges();
    EXPECT_EQ(ranges.size(), 4u);
    const std::vector<ULong64_t> expected_boundaries = {0u, 2u, 4u, 6u, 10u};
-   for (int i = 0u; i < 4u; ++i) {
+   for (auto i = 0u; i < 4u; ++i) {
       EXPECT_EQ(ranges[i].first, expected_boundaries[i]);
       EXPECT_EQ(ranges[i].second, expected_boundaries[i + 1]);
    }
