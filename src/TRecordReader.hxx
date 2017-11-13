@@ -31,15 +31,15 @@ public:
    /// Move this RecordReader to the next valid record in the file. Return false if there are no further records.
    bool NextRecord();
    /// Return position of the current record
-   pos_type GetRecordPosition() { return fCurrentRecord; }
+   pos_type GetRecordPosition() const { return fCurrentRecord; }
    /// Return size of current record, or 0 if no record has been read yet
-   unsigned int GetRecordSize() { return fRecordSize; }
+   unsigned int GetRecordSize() const { return fRecordSize; }
    /// Move this RecordReader to the next bank in the record. Return false if there are no further banks.
    bool NextBank();
    /// Return position of the current bank
-   pos_type GetBankPosition() { return fCurrentBank; }
+   pos_type GetBankPosition() const { return fCurrentBank; }
    /// Return header information for the current bank
-   BankHeader GetBankHeader() { return fBankHeader; }
+   BankHeader GetBankHeader() const { return fBankHeader; }
 
 private:
    /// Extract information from the bank header
