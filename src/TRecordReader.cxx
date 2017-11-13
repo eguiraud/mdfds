@@ -17,7 +17,7 @@ bool TRecordReader::NextRecord()
       return false;
    fRecordSize = EvalRecordSize();
    if (fRecordSize == 0u) {
-      std::cerr << "warning: corrupted record encountered at position " << fCurrentRecord << ", aborting.";
+      std::cerr << "warning: corrupted record encountered at position " << fCurrentRecord << ", aborting.\n";
       return false;
    }
    return true;
