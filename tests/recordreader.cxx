@@ -36,6 +36,23 @@ TEST(RecordReader, TraverseBanks)
    }
 }
 
+TEST(RecordReader, ReadBankBody)
+{
+   // read body of each bank of the first record, dump as hex
+   TRecordReader r(fname);
+   r.NextRecord();
+   for (auto bankn = 0u; r.NextBank(); ++bankn) {
+      auto bankHeader = r.GetBankHeader();
+      auto body = r.GetBankBody();
+      std::cout << "    bank " << with_width(7) << bankn << " size: " << with_width(6) << body.size() << '\n';
+      for (auto byte : body) {
+         // print each byte as a separate hex string
+         std::cout << std::setfill('0') << std::setw(8) << std::hex << static_cast<unsigned int>(byte) << " ";
+      }
+      std::cout << std::dec << std::setfill(' ') << '\n';
+   }
+}
+
 int main(int argc, char **argv)
 {
    ::testing::InitGoogleTest(&argc, argv);
