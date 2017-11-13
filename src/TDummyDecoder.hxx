@@ -5,12 +5,12 @@
 
 class TDummyDecoder : public TBankDecoder {
 public:
-   std::string GetName() const { return "dummy"; }
-   std::string GetTypeName() const { return "int"; }
-   int GetID() const { return 123456; }
-   void Decode(const char *, void *destination) const { *static_cast<int *>(destination) = 42; }
-   std::vector<void *> Allocate(unsigned int N, const std::type_info &expectedType) const;
-   void Deallocate(const std::vector<void *> &objs) const;
+   std::string GetName() const final { return "dummy"; }
+   std::string GetTypeName() const final { return "int"; }
+   int GetID() const final { return 123456; }
+   void Decode(const char *, void *destination) const final { *static_cast<int *>(destination) = 42; }
+   void *Allocate() const final;
+   void Deallocate(void *obj) const final;
 };
 
 #endif

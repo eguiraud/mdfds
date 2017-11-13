@@ -1,15 +1,11 @@
 #include "TDummyDecoder.hxx"
 
-std::vector<void *> TDummyDecoder::Allocate(unsigned int N, const std::type_info &expectedType) const
+void *TDummyDecoder::Allocate() const
 {
-   std::vector<void *> v(N, nullptr);
-   for (auto &e : v)
-      e = new int;
-   return v;
+   return new int;
 }
 
-void TDummyDecoder::Deallocate(const std::vector<void *> &objs) const
+void TDummyDecoder::Deallocate(void *obj) const
 {
-   for (auto p : objs)
-      delete static_cast<int *>(p);
+   delete static_cast<int *>(obj);
 }
