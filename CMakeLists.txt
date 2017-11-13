@@ -2,6 +2,9 @@
 cmake_minimum_required(VERSION 3.5)
 project(mdfds CXX)
 set(CMAKE_CXX_STANDARD 11)
+add_compile_options(-Wall -Wextra -Wpedantic)
+
+#---- FIND SYSTEM THREADING LIBRARY
 find_package(Threads REQUIRED)
 
 #---- FIND ROOT
