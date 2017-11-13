@@ -23,6 +23,8 @@ class TMDFDataSource : public ROOT::Experimental::TDF::TDataSource {
    std::vector<TRecordReader> fRecordReaders; ///< Per-slot record readers
    /// Index of the current file being processed in fFileNames
    std::size_t fCurrentFile = std::numeric_limits<std::size_t>::max();
+   /// Per-slot pointers to column values. Use as fColumnValues[slot][columnIndex].
+   std::vector<std::vector<void *>> fColumnValues;
 
 public:
    explicit TMDFDataSource(const std::vector<std::string> &fileNames)
@@ -36,9 +38,18 @@ public:
    void SetNSlots(unsigned int nSlots)
    {
       fNSlots = nSlots;
+
       fRecordReaders.reserve(fNSlots);
       for (auto i = 0u; i < fNSlots; ++i)
          fRecordReaders.emplace_back(fFileNames[0]);
+
+      fColumnValues.resize(fNSlots);
+      constexpr auto nColumns = std::tuple_size<decltype(fDecoders)>::value;
+      for (auto &colValues : fColumnValues) {
+         colValues.resize(nColumns);
+         for (auto colInd = 0u; colInd < nColumns; ++colInd)
+            colValues[colInd] = fDecoderPtrs[colInd]->Allocate();
+      }
    }
 
    const std::vector<std::string> &GetColumnNames() const { return fDecoderNames; }
@@ -86,7 +97,19 @@ public:
 
 private:
    /// Return a type-erased vector of pointers to pointers to column values - one per slot
-   std::vector<void *> GetColumnReadersImpl(std::string_view name, const std::type_info &) { return {}; /*TODO*/ }
+   std::vector<void *> GetColumnReadersImpl(std::string_view name, const std::type_info &)
+   {
+      std::vector<void *> columnPtrPtrs(fNSlots);
+      const auto ind =
+         std::distance(fDecoderNames.begin(), std::find(fDecoderNames.begin(), fDecoderNames.end(), name));
+      if (ind == fDecoderNames.size()) {
+         std::cerr << "warning: could not find \"" << name << "\", no readers returned";
+         return {};
+      }
+      for (auto slot = 0u; slot < fNSlots; ++slot)
+         columnPtrPtrs[slot] = &fColumnValues[slot][ind];
+      return columnPtrPtrs;
+   }
 
    template <int... S>
    std::vector<TBankDecoder *> GetDecoderAddresses(ROOT::Internal::TDF::StaticSeq<S...>)
