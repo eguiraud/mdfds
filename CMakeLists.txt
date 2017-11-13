@@ -4,6 +4,11 @@ project(mdfds CXX)
 set(CMAKE_CXX_STANDARD 11)
 add_compile_options(-Wall -Wextra -Wpedantic)
 
+if (NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type" FORCE)
+	message (STATUS "Build type not specified: defaulting to ${CMAKE_BUILD_TYPE}")
+endif()
+
 #---- FIND SYSTEM THREADING LIBRARY
 find_package(Threads REQUIRED)
 
