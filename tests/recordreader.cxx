@@ -14,12 +14,22 @@ auto operator<<(std::ostream &os, const with_width &w) -> decltype(os << std::se
    return os << std::setw(w.w) << std::left;
 }
 
-TEST(RecordReader, TraverseRecords)
+TEST(RecordReader, NextRecord)
 {
    TRecordReader r(fname);
    for (auto recordn = 0u; r.NextRecord(); ++recordn)
       std::cout << "record " << with_width(7) << recordn << " pos: " << with_width(10) << r.GetRecordPosition()
                 << " size: " << with_width(7) << r.GetRecordSize() << '\n';
+}
+
+TEST(RecordReader, SeekRecordAt)
+{
+   TRecordReader r(fname);
+   TRecordReader ref(fname);
+   while (ref.NextRecord()) {
+      r.SeekRecordAt(r.GetRecordPosition() + std::streamoff(r.GetRecordSize()));
+      EXPECT_EQ(r.GetRecordPosition(), ref.GetRecordPosition());
+   }
 }
 
 TEST(RecordReader, TraverseBanks)
