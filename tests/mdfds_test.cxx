@@ -46,7 +46,7 @@ TEST(MDFDS, GetColumnReadersMT)
    const std::vector<int **> readers = ds.GetColumnReaders<int>("dummy");
    for (auto &r : readers) {
       EXPECT_NE(r, nullptr);
-      (void)**r; // check we can dereference twice without crashing
+      EXPECT_EQ(**r, 42); // check we can dereference twice without crashing
    }
 }
 

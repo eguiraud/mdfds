@@ -2,7 +2,7 @@
 
 void *TDummyDecoder::Allocate() const
 {
-   return new int;
+   return new int(42);
 }
 
 void TDummyDecoder::Deallocate(void *obj) const
