@@ -21,6 +21,8 @@ class TMDFDataSource : public ROOT::Experimental::TDF::TDataSource {
    const std::vector<std::string> fDecoderNames;   // TODO const?
    const std::vector<std::string> fFileNames;
    std::vector<TRecordReader> fRecordReaders; ///< Per-slot record readers
+   /// Index of the current file being processed in fFileNames
+   std::size_t fCurrentFile = std::numeric_limits<std::size_t>::max();
 
 public:
    explicit TMDFDataSource(const std::vector<std::string> &fileNames)
@@ -52,7 +54,33 @@ public:
       return fDecoderPtrs[ind]->GetTypeName();
    }
 
-   std::vector<std::pair<ULong64_t, ULong64_t>> GetEntryRanges() { return {}; /* TODO */ }
+   std::vector<std::pair<ULong64_t, ULong64_t>> GetEntryRanges()
+   {
+      // TODO: smarter division of records in entry ranges
+      // get the next file, count records, return fNSlots different ranges
+      fCurrentFile = fCurrentFile == std::numeric_limits<std::size_t>::max() ? 0u : fCurrentFile + 1u;
+      if (fCurrentFile >= fFileNames.size())
+         return {}; // no more files to process
+
+      TRecordReader r(fFileNames[fCurrentFile]);
+      auto nRecords = 0u;
+      while (r.NextRecord())
+         ++nRecords;
+
+      const auto chunkSize = nRecords / fNSlots;
+      const auto remainder = nRecords % fNSlots;
+      auto start = 0ul;
+      auto end = 0ul;
+
+      std::vector<std::pair<ULong64_t, ULong64_t>> entryRanges;
+      for (auto i = 0u; i < fNSlots; ++i) {
+         start = end;
+         end += chunkSize;
+         entryRanges.emplace_back(start, end);
+      }
+      entryRanges.back().second += remainder;
+      return entryRanges;
+   }
 
    void SetEntry(unsigned int slot, ULong64_t entry) { /*TODO*/}
 
