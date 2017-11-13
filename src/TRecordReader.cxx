@@ -81,3 +81,18 @@ BankHeader TRecordReader::ReadBankHeader()
    fFileBuf.sgetn(reinterpret_cast<char *>(&h.version), 1);
    return h;
 }
+
+std::vector<char> TRecordReader::GetBankBody() {
+   const auto bankSize = fBankHeader.size;
+   if (bankSize == 0u) {
+      std::cerr << "warning: bank body requested, but no bank has been read for this record yet. Please call "
+                   "`NextBank()` first.\n";
+      return {};
+   }
+
+   fFileBuf.pubseekpos(fCurrentBank + std::streamoff(8)); // skip bank header
+   const auto bodySize = bankSize - 8;
+   std::vector<char> body(bodySize, 0);
+   fFileBuf.sgetn(reinterpret_cast<char *>(body.data()), body.size());
+   return body;
+}

@@ -2,6 +2,7 @@
 #define TRECORDREADER
 
 #include <fstream> // std::filebuf
+#include <vector>
 
 struct BankHeader {
    unsigned int size = 0u;    // actually 16 bits
@@ -40,6 +41,8 @@ public:
    pos_type GetBankPosition() const { return fCurrentBank; }
    /// Return header information for the current bank
    BankHeader GetBankHeader() const { return fBankHeader; }
+   /// Return a vector of bytes whose `data` contains the current bank's body
+   std::vector<char> GetBankBody();
 
 private:
    /// Extract information from the bank header
