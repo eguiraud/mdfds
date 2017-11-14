@@ -7,6 +7,14 @@
 #include <type_traits>
 #include <vector>
 
+/// \brief General utility to reinterpret the memory associated to a certain value
+///  pun_to allows to reinterpret the memory associated to a variable without copies.
+template <typename T, typename U>
+inline T &pun_to(const U &x)
+{
+   return *(T *)&x;
+}
+
 /// \brief Abstract implementation of an MDF bank decoder.
 /// TMDFDataSource uses concrete TBankDecoder implementations to read banks.
 class TBankDecoder {
