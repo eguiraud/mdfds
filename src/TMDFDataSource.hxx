@@ -52,7 +52,7 @@ public:
          throw std::invalid_argument("empty list of files");
    }
 
-   void SetNSlots(unsigned int nSlots)
+   void SetNSlots(unsigned int nSlots) final
    {
       fNSlots = nSlots;
 
@@ -71,20 +71,20 @@ public:
       fCurrentEntries.resize(fNSlots, 0ul);
    }
 
-   const std::vector<std::string> &GetColumnNames() const { return fDecoderNames; }
+   const std::vector<std::string> &GetColumnNames() const final { return fDecoderNames; }
 
-   bool HasColumn(std::string_view col) const
+   bool HasColumn(std::string_view col) const final
    {
       return std::find(fDecoderNames.begin(), fDecoderNames.end(), col) != fDecoderNames.end();
    }
 
-   std::string GetTypeName(std::string_view col) const
+   std::string GetTypeName(std::string_view col) const final
    {
       const auto ind = std::distance(fDecoderNames.begin(), std::find(fDecoderNames.begin(), fDecoderNames.end(), col));
       return fDecoderPtrs[ind]->GetTypeName();
    }
 
-   std::vector<std::pair<ULong64_t, ULong64_t>> GetEntryRanges()
+   std::vector<std::pair<ULong64_t, ULong64_t>> GetEntryRanges() final
    {
       // Create a new range every ~1GB. Each TDF task will process ~1GB of records (typically only reading parts of it)
       return GetEntryRanges(/*minRangesize=*/1024 * 1024 * 1024);
@@ -124,7 +124,7 @@ public:
       return entryRanges;
    }
 
-   void SetEntry(unsigned int slot, ULong64_t entry)
+   void SetEntry(unsigned int slot, ULong64_t entry) final
    {
       auto &curEntry = fCurrentEntries[slot];
       auto &recordReader = fRecordReaders[slot];
@@ -149,7 +149,7 @@ public:
 
 private:
    /// Return a type-erased vector of pointers to pointers to column values - one per slot
-   std::vector<void *> GetColumnReadersImpl(std::string_view name, const std::type_info &)
+   std::vector<void *> GetColumnReadersImpl(std::string_view name, const std::type_info &) final
    {
       std::vector<void *> columnPtrPtrs(fNSlots);
       const std::size_t ind =
