@@ -19,7 +19,7 @@ TEST(MDFDS, DummyDecoderTDF)
    auto tdf = MakeMDFDataFrame({"small.raw"});
 }
 
-TEST(MDFDS, GetEntryRangesMT)
+TEST(MDFDS, GetEntryRanges)
 {
    TMDFDataSource<> ds({"small.raw"});
    const auto ranges = ds.GetEntryRanges(41000);

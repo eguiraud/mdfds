@@ -155,7 +155,7 @@ private:
       const std::size_t ind =
          std::distance(fDecoderNames.begin(), std::find(fDecoderNames.begin(), fDecoderNames.end(), name));
       if (ind == fDecoderNames.size()) {
-         std::cerr << "warning: could not find \"" << name << "\", no readers returned";
+         std::cerr << "warning: could not find \"" << name << "\", no readers returned\n";
          return {};
       }
       for (auto slot = 0u; slot < fNSlots; ++slot)
