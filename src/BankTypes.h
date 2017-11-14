@@ -79,4 +79,12 @@ enum class EBankType {
    LastType // LOOP Marker; add new bank types ONLY before!
 };
 
+#include <iostream>
+
+inline std::ostream &operator<<(std::ostream &os, const EBankType &bankType)
+{
+   os << static_cast<std::underlying_type<EBankType>::type>(bankType);
+   return os;
+}
+
 #endif // BANKTYPES
