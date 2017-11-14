@@ -66,7 +66,8 @@ bool TRecordReader::NextBank()
    }
    fBankHeader = ReadBankHeader();
    if (fBankHeader.size == 0u) {
-      std::cerr << "warning: could not read bank header. skipping further banks in record " << fCurrentRecord << '\n';
+      std::cerr << "warning: could not read bank header. skipping further banks in record at position "
+                << fCurrentRecord << '\n';
       return false;
    }
    return true;
