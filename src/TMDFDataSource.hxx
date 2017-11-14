@@ -143,7 +143,7 @@ public:
          const std::size_t bankInd =
             std::distance(fDecoderIDs.begin(), std::find(fDecoderIDs.begin(), fDecoderIDs.end(), bh.type));
          if (bankInd < sizeof...(Decoders)) // we have a decoder for this bank
-            fDecoderPtrs[bankInd]->Decode(recordReader.GetBankBody().data(), fColumnValues[slot][bankInd]);
+            fDecoderPtrs[bankInd]->Decode(recordReader.GetBankBody(), fColumnValues[slot][bankInd]);
       }
    }
 
