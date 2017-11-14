@@ -86,8 +86,8 @@ public:
 
    std::vector<std::pair<ULong64_t, ULong64_t>> GetEntryRanges() final
    {
-      // Create a new range every ~1GB. Each TDF task will process ~1GB of records (typically only reading parts of it)
-      return GetEntryRanges(/*minRangesize=*/1024 * 1024 * 1024);
+      // Create a new range every ~100MB. Each TDF task will process ~1GB of records (typically only reading parts of it)
+      return GetEntryRanges(/*minRangesize=*/100 * 1024 * 1024);
    }
 
    std::vector<std::pair<ULong64_t, ULong64_t>> GetEntryRanges(TRecordReader::pos_type minRangeSize)
