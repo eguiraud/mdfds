@@ -65,6 +65,10 @@ bool TRecordReader::NextBank()
          return false;
    }
    fBankHeader = ReadBankHeader();
+   if (fBankHeader.size == 0u) {
+      std::cerr << "warning: could not read bank header. skipping further banks in record " << fCurrentRecord << '\n';
+      return false;
+   }
    return true;
 }
 
@@ -74,8 +78,9 @@ BankHeader TRecordReader::ReadBankHeader()
    fFileBuf.pubseekpos(fCurrentBank);
    unsigned int magic = 0u;
    fFileBuf.sgetn(reinterpret_cast<char *>(&magic), 2);
-   if (magic != 0xcbcb)
-      throw std::runtime_error("bank header does not start with magic pattern");
+   if (magic != 0xcbcb) {
+      return BankHeader();
+   }
    fFileBuf.sgetn(reinterpret_cast<char *>(&h.size), 2);
    fFileBuf.sgetn(reinterpret_cast<char *>(&h.type), 1);
    fFileBuf.sgetn(reinterpret_cast<char *>(&h.version), 1);
