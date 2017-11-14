@@ -26,13 +26,13 @@ struct THltVertexReports {
 class THltVertexReportsDecoder final : public TBankDecoder {
 public:
    ~THltVertexReportsDecoder() {}
-   std::string GetName() const { return "HltVertexReports"; };     // TODO: shouldn't this be a const ref?
-   std::string GetTypeName() const { return "HltVertexReports"; }; // TODO: shouldn't this be a const ref?
-   const std::type_info &GetTypeInfo() const;
+   std::string GetName() const final { return "HltVertexReports"; };     // TODO: shouldn't this be a const ref?
+   std::string GetTypeName() const final { return "HltVertexReports"; }; // TODO: shouldn't this be a const ref?
+   const std::type_info &GetTypeInfo() const final;
    EBankType GetID() const;
-   void Decode(const std::vector<char> &bank, void *destination) const;
-   void *Allocate() const;
-   void Deallocate(void *obj) const;
+   void Decode(const std::vector<char> &bank, void *destination) const final;
+   void *Allocate() const final;
+   void Deallocate(void *obj) const final;
 };
 
 #endif
