@@ -22,6 +22,7 @@ find_package(GTest)
 if(GTest_FOUND)
 	include_directories(${GTEST_INCLUDE_DIRS})
 else()
+	message (STATUS "GTest will be downloaded and installed as part of the build step")
 	# Download and install googletest
 	include(ExternalProject)
 	ExternalProject_Add(googletest
