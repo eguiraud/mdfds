@@ -40,6 +40,8 @@ class TMDFDataSource : public ROOT::Experimental::TDF::TDataSource {
    /// Unordered map entry->file_position for the first entries of each range.
    /// Used by SetEntry to perform jumps between distant records when a TRecordReader must switch entry range.
    std::unordered_map<ULong64_t, TRecordReader::pos_type> fEntryPositions;
+   /// Per-slot current entry number
+   std::vector<ULong64_t> fCurrentEntries;
 
 public:
    explicit TMDFDataSource(const std::vector<std::string> &fileNames)
@@ -65,6 +67,8 @@ public:
          for (auto colInd = 0u; colInd < nColumns; ++colInd)
             colValues[colInd] = fDecoderPtrs[colInd]->Allocate();
       }
+
+      fCurrentEntries.resize(fNSlots, 0ul);
    }
 
    const std::vector<std::string> &GetColumnNames() const { return fDecoderNames; }
@@ -120,7 +124,28 @@ public:
       return entryRanges;
    }
 
-   void SetEntry(unsigned int, ULong64_t) { /*TODO*/}
+   void SetEntry(unsigned int slot, ULong64_t entry)
+   {
+      auto &curEntry = fCurrentEntries[slot];
+      auto &recordReader = fRecordReaders[slot];
+      if (entry == curEntry + 1) {
+         // next entry in range, or first entry of a consecutive range. we can just keep going.
+         recordReader.NextRecord();
+      } else {
+         // start of a new entry range, jump the correct file position
+         recordReader.SeekRecordAt(fEntryPositions.at(entry));
+      }
+      fCurrentEntries[slot] = entry;
+
+      while (recordReader.NextBank())
+      {
+         const auto bh = recordReader.GetBankHeader();
+         const std::size_t bankInd =
+            std::distance(fDecoderIDs.begin(), std::find(fDecoderIDs.begin(), fDecoderIDs.end(), bh.type));
+         if (bankInd < sizeof...(Decoders)) // we have a decoder for this bank
+            fDecoderPtrs[bankInd]->Decode(recordReader.GetBankBody().data(), fColumnValues[slot][bankInd]);
+      }
+   }
 
 private:
    /// Return a type-erased vector of pointers to pointers to column values - one per slot
