@@ -1,6 +1,5 @@
 #include "THltVertexReportsDecoder.hxx"
 #include "BankTypes.h"
-#include "THltVertexReports.hxx"
 
 #include <iostream>
 #include <sstream>
