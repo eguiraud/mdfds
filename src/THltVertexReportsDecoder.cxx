@@ -8,12 +8,12 @@
 const std::type_info &THltVertexReportsDecoder::GetTypeInfo() const
 {
    return typeid(THltVertexReports);
-};
+}
 
 EBankType THltVertexReportsDecoder::GetID() const
 {
    return EBankType::HltVertexReports;
-};
+}
 
 struct TPVInfo {
    float x;
@@ -105,9 +105,9 @@ void THltVertexReportsDecoder::Decode(const std::vector<char> &bank, void *desti
 void *THltVertexReportsDecoder::Allocate() const
 {
    return new THltVertexReports();
-};
+}
 
 void THltVertexReportsDecoder::Deallocate(void *obj) const
 {
    delete reinterpret_cast<THltVertexReports *>(obj);
-};
+}
