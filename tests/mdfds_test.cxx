@@ -70,28 +70,28 @@ TEST(MDFTDF, ReadHltVertices)
 {
    auto tdf = MakeMDFDataFrame<THltVertexReportsDecoder>({"small.raw"});
    auto d = tdf.Define("x",
-              [](const THltVertexReports &pv) {
-                 auto x = std::move(pv.x);
-                 return x;
-              },
-              {"HltVertexReports"})
-   .Define("y",
-              [](const THltVertexReports &pv) {
-                 auto y = std::move(pv.y);
-                 return y;
-              },
-              {"HltVertexReports"})
-   .Define("z",
-              [](const THltVertexReports &pv) {
-                 auto z = std::move(pv.z);
-                 return z;
-              },
-              {"HltVertexReports"});
+                       [](const THltVertexReports &pv) {
+                          auto x = std::move(pv.x);
+                          return x;
+                       },
+                       {"HltVertexReports"})
+               .Define("y",
+                       [](const THltVertexReports &pv) {
+                          auto y = std::move(pv.y);
+                          return y;
+                       },
+                       {"HltVertexReports"})
+               .Define("z",
+                       [](const THltVertexReports &pv) {
+                          auto z = std::move(pv.z);
+                          return z;
+                       },
+                       {"HltVertexReports"});
    auto h = d.Histo3D<std::vector<float>, std::vector<float>, std::vector<float>>(
-      {"h", "h", 100, -20, 20, 100, -20, 20, 100, -20, 20}, "x", "y", "z");
-  TFile f("output.root", "RECREATE");
-  h->SetDirectory(&f);
-  f.Write();
+      {"HltVertexReportsXYZ", "HltVertexReportsXYZ", 50, 0.7, 0.94, 50, -0.3, 0.1, 100, -100, 100}, "x", "y", "z");
+   TFile f("output.root", "RECREATE");
+   h->SetDirectory(&f);
+   f.Write();
 }
 
 int main(int argc, char **argv)
