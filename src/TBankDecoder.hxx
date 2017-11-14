@@ -10,9 +10,9 @@
 /// \brief General utility to reinterpret the memory associated to a certain value
 ///  pun_to allows to reinterpret the memory associated to a variable without copies.
 template <typename T, typename U>
-inline T &pun_to(const U &x)
+const T &pun_to(const U &x)
 {
-   return *(T *)&x;
+   return *reinterpret_cast<const T *>(&x);
 }
 
 /// \brief Abstract implementation of an MDF bank decoder.
