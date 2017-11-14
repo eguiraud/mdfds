@@ -9,6 +9,7 @@
 #include <ROOT/TDataSource.hxx>
 #include <ROOT/TDFUtils.hxx> // GenStaticSeq, StaticSeq
 #include <tuple>
+#include <unordered_map>
 
 /// \brief A concrete TDataSource implementation that reads MDF files
 template <typename... Decoders>
@@ -29,10 +30,18 @@ class TMDFDataSource : public ROOT::Experimental::TDF::TDataSource {
    const std::vector<std::string> fFileNames;
    /// Index of the current file being processed in fFileNames
    std::size_t fCurrentFile = std::numeric_limits<std::size_t>::max();
+   /// The entry number at which new entry ranges should start
+   /// Corresponds to the last entry of the previous batch of entry ranges
+   ULong64_t fEntryOffset = 0ul;
    /// Per-slot record readers
    std::vector<TRecordReader> fRecordReaders;
    /// Per-slot pointers to column values. Use as fColumnValues[slot][columnIndex].
    std::vector<std::vector<void *>> fColumnValues;
+   /// Unordered map entry->file_position for the first entries of each range.
+   /// Used by SetEntry to perform jumps between distant records when a TRecordReader must switch entry range.
+   std::unordered_map<ULong64_t, TRecordReader::pos_type> fEntryPositions;
+   /// Per-slot current entry number
+   std::vector<ULong64_t> fCurrentEntries;
 
 public:
    explicit TMDFDataSource(const std::vector<std::string> &fileNames)
@@ -58,6 +67,8 @@ public:
          for (auto colInd = 0u; colInd < nColumns; ++colInd)
             colValues[colInd] = fDecoderPtrs[colInd]->Allocate();
       }
+
+      fCurrentEntries.resize(fNSlots, 0ul);
    }
 
    const std::vector<std::string> &GetColumnNames() const { return fDecoderNames; }
@@ -75,6 +86,12 @@ public:
 
    std::vector<std::pair<ULong64_t, ULong64_t>> GetEntryRanges()
    {
+      // Create a new range every ~1GB. Each TDF task will process ~1GB of records (typically only reading parts of it)
+      return GetEntryRanges(/*minRangesize=*/1024 * 1024 * 1024);
+   }
+
+   std::vector<std::pair<ULong64_t, ULong64_t>> GetEntryRanges(TRecordReader::pos_type minRangeSize)
+   {
       // TODO: smarter division of records in entry ranges
       // get the next file, count records, return fNSlots different ranges
       fCurrentFile = fCurrentFile == std::numeric_limits<std::size_t>::max() ? 0u : fCurrentFile + 1u;
@@ -82,26 +99,53 @@ public:
          return {}; // no more files to process
 
       TRecordReader r(fFileNames[fCurrentFile]);
-      auto nRecords = 0u;
-      while (r.NextRecord())
-         ++nRecords;
-
-      const auto chunkSize = nRecords / fNSlots;
-      const auto remainder = nRecords % fNSlots;
-      auto start = 0ul;
-      auto end = 0ul;
-
+      fEntryPositions.clear();
+      fEntryPositions[fEntryOffset] = 0;
       std::vector<std::pair<ULong64_t, ULong64_t>> entryRanges;
-      for (auto i = 0u; i < fNSlots; ++i) {
-         start = end;
-         end += chunkSize;
-         entryRanges.emplace_back(start, end);
+      TRecordReader::pos_type rangeStartPos = 0;
+      auto recordsInRange = 0u;
+
+      while (r.NextRecord()) {
+         const auto recordPos = r.GetRecordPosition();
+         if (recordPos - rangeStartPos > minRangeSize) {
+            entryRanges.emplace_back(fEntryOffset, fEntryOffset + recordsInRange);
+            rangeStartPos = recordPos;
+            fEntryOffset += recordsInRange;
+            fEntryPositions[fEntryOffset] = rangeStartPos;
+            recordsInRange = 0u;
+         }
+         ++recordsInRange;
       }
-      entryRanges.back().second += remainder;
+      // deal with last records
+      if (recordsInRange > 0u) {
+         entryRanges.emplace_back(fEntryOffset, fEntryOffset + recordsInRange); // TOCHECK!
+         fEntryOffset += recordsInRange;
+      }
       return entryRanges;
    }
 
-   void SetEntry(unsigned int, ULong64_t) { /*TODO*/}
+   void SetEntry(unsigned int slot, ULong64_t entry)
+   {
+      auto &curEntry = fCurrentEntries[slot];
+      auto &recordReader = fRecordReaders[slot];
+      if (entry == curEntry + 1) {
+         // next entry in range, or first entry of a consecutive range. we can just keep going.
+         recordReader.NextRecord();
+      } else {
+         // start of a new entry range, jump the correct file position
+         recordReader.SeekRecordAt(fEntryPositions.at(entry));
+      }
+      fCurrentEntries[slot] = entry;
+
+      while (recordReader.NextBank())
+      {
+         const auto bh = recordReader.GetBankHeader();
+         const std::size_t bankInd =
+            std::distance(fDecoderIDs.begin(), std::find(fDecoderIDs.begin(), fDecoderIDs.end(), bh.type));
+         if (bankInd < sizeof...(Decoders)) // we have a decoder for this bank
+            fDecoderPtrs[bankInd]->Decode(recordReader.GetBankBody().data(), fColumnValues[slot][bankInd]);
+      }
+   }
 
 private:
    /// Return a type-erased vector of pointers to pointers to column values - one per slot
@@ -111,7 +155,7 @@ private:
       const std::size_t ind =
          std::distance(fDecoderNames.begin(), std::find(fDecoderNames.begin(), fDecoderNames.end(), name));
       if (ind == fDecoderNames.size()) {
-         std::cerr << "warning: could not find \"" << name << "\", no readers returned";
+         std::cerr << "warning: could not find \"" << name << "\", no readers returned\n";
          return {};
       }
       for (auto slot = 0u; slot < fNSlots; ++slot)
