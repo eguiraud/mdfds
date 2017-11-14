@@ -96,7 +96,8 @@ unsigned int TRecordReader::EvalRecordSize()
       return 0u;
 }
 
-std::vector<char> TRecordReader::GetBankBody() {
+std::vector<char> TRecordReader::GetBankBody()
+{
    const auto bankSize = fBankHeader.size;
    if (bankSize == 0u) {
       std::cerr << "warning: bank body requested, but no bank has been read for this record yet. Please call "
