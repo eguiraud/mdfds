@@ -1,6 +1,7 @@
 #ifndef TBANKDECODER
 #define TBANKDECODER
 
+#include "BankTypes.h"
 #include <string>
 #include <typeinfo>
 #include <type_traits>
@@ -18,9 +19,9 @@ public:
    /// Retrieve the type info of this bank.
    virtual const std::type_info &GetTypeInfo() const = 0;
    /// Retrieve bank ID.
-   virtual int GetID() const = 0;
+   virtual EBankType GetID() const = 0;
    /// Take a bank body as raw bytes, put the encoding in the area of memory pointed by destination
-   virtual void Decode(const char *bank, void *destination) const = 0;
+   virtual void Decode(const std::vector<char> &bank, void *destination) const = 0;
    /// Allocate N objects of the correct type, after checking that we expect the right type
    virtual void *Allocate() const = 0;
    /// Deallocate objects by calling the destructor for the appropriate type

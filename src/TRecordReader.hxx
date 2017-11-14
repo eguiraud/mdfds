@@ -1,13 +1,15 @@
 #ifndef TRECORDREADER
 #define TRECORDREADER
 
+#include "BankTypes.h"
+
 #include <fstream> // std::filebuf
 #include <vector>
 
 struct BankHeader {
-   unsigned int size = 0u;    // actually 16 bits
-   unsigned int type = 0u;    // actually 8 bits
-   unsigned int version = 0u; // actually 8 bits
+   unsigned int size = 0u;               // actually 16 bits
+   EBankType type = EBankType::LastType; // actually 8 bits
+   unsigned int version = 0u;            // actually 8 bits
 };
 
 class TRecordReader {

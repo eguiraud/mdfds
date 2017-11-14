@@ -25,7 +25,7 @@ class TMDFDataSource : public ROOT::Experimental::TDF::TDataSource {
    /// List of decoder names (i.e. column names), with the same ordering as the decoders in fDecoders
    const std::vector<std::string> fDecoderNames;
    /// List of decoder ids (i.e. bank type), with same ordering as the decoders in fDecoders
-   const std::vector<int> fDecoderIDs;
+   const std::vector<EBankType> fDecoderIDs;
    /// List of files we will loop over
    const std::vector<std::string> fFileNames;
    /// Index of the current file being processed in fFileNames
@@ -177,7 +177,7 @@ private:
    }
 
    template <int... S>
-   std::vector<int> GetDecoderIDs(ROOT::Internal::TDF::StaticSeq<S...>) const
+   std::vector<EBankType> GetDecoderIDs(ROOT::Internal::TDF::StaticSeq<S...>) const
    {
       return {std::get<S>(fDecoders).GetID()...};
    }
