@@ -66,7 +66,7 @@ TEST(MDFTDF, MakeMDFDataFrame)
    auto tdf2 = MakeMDFDataFrame<TDummyDecoder>({"small.raw"});
 }
 
-TEST(MDFTDF, ReadHltVertices)
+void ReadHltVerticesImpl()
 {
    auto tdf = MakeMDFDataFrame<THltVertexReportsDecoder>({"small.raw"});
    auto d = tdf.Define("x",
@@ -92,6 +92,19 @@ TEST(MDFTDF, ReadHltVertices)
    TFile f("output.root", "RECREATE");
    h->SetDirectory(&f);
    f.Write();
+}
+
+TEST(MDFTDF, ReadHltVertices)
+{
+   ReadHltVerticesImpl();
+}
+
+
+TEST(MDFTDF, ReadHltVerticesMT)
+{
+   ROOT::EnableImplicitMT();
+   ReadHltVerticesImpl();
+   ROOT::DisableImplicitMT();
 }
 
 int main(int argc, char **argv)
