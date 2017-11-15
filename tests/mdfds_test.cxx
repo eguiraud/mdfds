@@ -6,6 +6,7 @@
 
 #include <random>
 #include <vector>
+using namespace ROOT::Experimental;
 
 const auto fname = "2krecords.raw";
 
@@ -70,29 +71,33 @@ TEST(MDFTDF, MakeMDFDataFrame)
 
 void ReadHltVerticesImpl()
 {
-   auto tdf = MakeMDFDataFrame<THltVertexReportsDecoder>({fname});
-   auto d = tdf.Define("x",
-                       [](const THltVertexReports &pv) {
-                          auto x = std::move(pv.x);
-                          return x;
-                       },
-                       {"HltVertexReports"})
-               .Define("y",
-                       [](const THltVertexReports &pv) {
-                          auto y = std::move(pv.y);
-                          return y;
-                       },
-                       {"HltVertexReports"})
-               .Define("z",
-                       [](const THltVertexReports &pv) {
-                          auto z = std::move(pv.z);
-                          return z;
-                       },
-                       {"HltVertexReports"});
-   auto h = d.Histo3D<std::vector<float>, std::vector<float>, std::vector<float>>(
-      {"HltVertexReportsXYZ", "HltVertexReportsXYZ", 50, 0.7, 0.94, 50, -0.3, 0.1, 100, -100, 100}, "x", "y", "z");
-   TFile f("output.root", "RECREATE");
-   h->SetDirectory(&f);
+   // get a dataframe
+   auto tdf_ = MakeMDFDataFrame<THltVertexReportsDecoder>({fname});
+
+   // define functions that extract x,y,z from a vertex report
+   auto getX = [](THltVertexReports &pv) { return std::move(pv.x); };
+   auto getY = [](THltVertexReports &pv) { return std::move(pv.y); };
+   auto getZ = [](THltVertexReports &pv) { return std::move(pv.z); };
+
+   // define x,y,z colum in the dataframe
+   auto tdf = tdf_.Define("x", getX, {"HltVertexReports"})
+                 .Define("y", getY, {"HltVertexReports"})
+                 .Define("z", getZ, {"HltVertexReports"});
+
+   // produce histograms
+   TDF::TH3DModel model("VerticesXYZ", "VerticesXYZ", 50, 0.7, 0.94, 50, -0.3, 0.1, 100, -100, 100);
+   auto verticesHist = tdf.Histo3D(model, "x", "y", "z");
+   auto nHist = tdf.Define("n", [](const std::vector<float> &x) { return x.size(); }, {"x"}).Histo1D("n");
+
+   // save x,y,z in a TTree
+   tdf.Snapshot("tree", "output.root", {"x", "y", "z"});
+
+   // save histograms to file
+   TFile f("output.root", "UPDATE");
+   verticesHist->SetDirectory(&f);
+   nHist->SetTitle("n vertices");
+   nHist->SetName("n vertices");
+   nHist->SetDirectory(&f);
    f.Write();
 }
 
