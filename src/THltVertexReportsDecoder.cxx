@@ -61,7 +61,7 @@ struct TPVInfo {
 // 77000000 90000000 22000000 4294967225       cov_02
 // 10500000 18000000 88000000 4294967223       cov_12
 
-void THltVertexReportsDecoder::Decode(const std::vector<char> &bank, void *destination) const
+void THltVertexReportsDecoder::Decode(std::array_view<char> bank, void *destination) const
 {
    auto &vReps = *reinterpret_cast<THltVertexReports *>(destination);
    // Clear contents of the THltVertexReports already present at destination

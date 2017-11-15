@@ -3,6 +3,8 @@
 
 #include "TBankDecoder.hxx"
 
+#include <ROOT/RArrayView.hxx>
+
 #include <vector>
 
 /// \brief The C++ representation of the HltVertexReports bank
@@ -30,7 +32,7 @@ public:
    std::string GetTypeName() const final { return "HltVertexReports"; }; // TODO: shouldn't this be a const ref?
    const std::type_info &GetTypeInfo() const final;
    EBankType GetID() const;
-   void Decode(const std::vector<char> &bank, void *destination) const final;
+   void Decode(std::array_view<char> bank, void *destination) const final;
    void *Allocate() const final;
    void Deallocate(void *obj) const final;
 };

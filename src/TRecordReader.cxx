@@ -42,27 +42,28 @@ bool TRecordReader::SeekRecordAt(pos_type pos)
 
 bool TRecordReader::NextBank()
 {
-   const auto recordEnd = fCurrentRecord + std::streamoff(fRecordSize);
-   if (fBankHeader.size == 0u) {
-      // jump to the end of the general record header (20 bytes long)
-      auto pos = fFileBuf.pubseekpos(fCurrentRecord + std::streamoff(20));
+   // the body size we load is the record size except the first three words, which have been read by EvalRecordSize
+   const auto bodySize = fRecordSize - 12;
+   if (fBankHeader.size == 0u) { // first time we read banks in this record: load record in memory
+      fRecordBody.clear();
+      // N.B. this does not change the size of the vector, but we ignore that value, we just need enough storage
+      fRecordBody.reserve(bodySize);
+      fFileBuf.sgetn(fRecordBody.data(), bodySize);
       // find first bank, i.e. first occurrence of the magic number
-      unsigned int magic = 0u;
-      fFileBuf.sgetn(reinterpret_cast<char *>(&magic), 2);
-      while (magic != 0xcbcb && pos < recordEnd) {
-         pos = fFileBuf.pubseekoff(2, std::ios_base::cur);
-         fFileBuf.sgetn(reinterpret_cast<char *>(&magic), 2);
+      fCurrentBank = 8u; // skip the general record header (20 bytes long)
+      auto magic = pun_to<unsigned short>(fRecordBody[fCurrentBank]);
+      while (magic != 0xcbcb && fCurrentBank < bodySize) {
+         fCurrentBank += 2;
+         magic = pun_to<unsigned short>(fRecordBody[fCurrentBank]);
       }
       if (magic != 0xcbcb) // no bank found
          return false;
-      fCurrentBank = pos;
    } else {
       // jump to next bank
       const auto bankSize = fBankHeader.size;
       const auto paddingBytes = (4 - (bankSize % 4)) % 4; // bytes required to make the next bank 32-bit aligned
-      fCurrentBank =
-         fFileBuf.pubseekpos(fCurrentBank + std::streamoff(fBankHeader.size) + std::streamoff(paddingBytes));
-      if (fCurrentBank >= recordEnd)
+      fCurrentBank += bankSize + paddingBytes;
+      if (fCurrentBank >= bodySize)
          return false;
    }
    fBankHeader = ReadBankHeader();
@@ -76,16 +77,14 @@ bool TRecordReader::NextBank()
 
 BankHeader TRecordReader::ReadBankHeader()
 {
-   BankHeader h;
-   fFileBuf.pubseekpos(fCurrentBank);
-   unsigned int magic = 0u;
-   fFileBuf.sgetn(reinterpret_cast<char *>(&magic), 2);
+   auto &magic = pun_to<unsigned short>(fRecordBody[fCurrentBank]);
    if (magic != 0xcbcb) {
       return BankHeader();
    }
-   fFileBuf.sgetn(reinterpret_cast<char *>(&h.size), 2);
-   fFileBuf.sgetn(reinterpret_cast<char *>(&h.type), 1);
-   fFileBuf.sgetn(reinterpret_cast<char *>(&h.version), 1);
+   BankHeader h;
+   h.size = static_cast<int>(pun_to<unsigned short>(fRecordBody[fCurrentBank + 2]));
+   h.type = static_cast<EBankType>(fRecordBody[fCurrentBank + 4]);
+   h.version = static_cast<int>(fRecordBody[fCurrentBank + 5]);
    return h;
 }
 
@@ -103,7 +102,7 @@ unsigned int TRecordReader::EvalRecordSize()
       return 0u;
 }
 
-std::vector<char> TRecordReader::GetBankBody()
+std::array_view<char> TRecordReader::GetBankBody()
 {
    const auto bankSize = fBankHeader.size;
    if (bankSize == 0u) {
@@ -112,9 +111,5 @@ std::vector<char> TRecordReader::GetBankBody()
       return {};
    }
 
-   fFileBuf.pubseekpos(fCurrentBank + std::streamoff(8)); // skip bank header
-   const auto bodySize = bankSize - 8;
-   std::vector<char> body(bodySize, 0);
-   fFileBuf.sgetn(reinterpret_cast<char *>(body.data()), body.size());
-   return body;
+   return std::array_view<char>(&fRecordBody[fCurrentBank + 8], bankSize);
 }

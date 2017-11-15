@@ -9,7 +9,7 @@ public:
    std::string GetTypeName() const final { return "int"; }
    const std::type_info &GetTypeInfo() const { return typeid(int); }
    EBankType GetID() const final { return EBankType::LastType; }
-   void Decode(const std::vector<char> &, void *destination) const final { *static_cast<int *>(destination) = 42; }
+   void Decode(std::array_view<char>, void *destination) const final { *static_cast<int *>(destination) = 42; }
    void *Allocate() const final;
    void Deallocate(void *obj) const final;
 };
