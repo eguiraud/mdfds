@@ -1,4 +1,5 @@
 #include "THltVertexReportsDecoder.hxx"
+#include "PunTo.hxx"
 #include "BankTypes.h"
 
 #include <iostream>
