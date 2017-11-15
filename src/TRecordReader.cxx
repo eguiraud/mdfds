@@ -13,7 +13,8 @@ TRecordReader::TRecordReader(const std::string &fname)
 bool TRecordReader::NextRecord()
 {
    fBankHeader = BankHeader(); // reset current bank header information
-   fCurrentRecord = fFileStream.seekg(fCurrentRecord + std::streamoff(fRecordSize)).tellg();
+   fCurrentRecord += std::streamoff(fRecordSize);
+   fFileStream.seekg(fCurrentRecord);
    if (fFileStream.peek() == decltype(fFileStream)::traits_type::eof())
       return false;
    fRecordSize = EvalRecordSize();
@@ -27,7 +28,8 @@ bool TRecordReader::NextRecord()
 bool TRecordReader::SeekRecordAt(pos_type pos)
 {
    fBankHeader = BankHeader();
-   fCurrentRecord = fFileStream.seekg(pos).tellg();
+   fCurrentRecord = pos;
+   fFileStream.seekg(fCurrentRecord);
    if (fCurrentRecord < 0) {
       std::cerr << "warning: invalid position passed to SeekRecordAt, aborting.\n";
       return false;
