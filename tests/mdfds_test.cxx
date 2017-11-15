@@ -7,10 +7,12 @@
 #include <random>
 #include <vector>
 
+const auto fname = "2krecords.raw";
+
 TEST(MDFDS, DummyDecoder)
 {
    // file does not have to exist
-   TMDFDataSource<TDummyDecoder> ds({"small.raw"});
+   TMDFDataSource<TDummyDecoder> ds({fname});
 }
 
 TEST(MDFDS, GetEntryRanges)
@@ -27,7 +29,7 @@ TEST(MDFDS, GetEntryRanges)
 
 TEST(MDFDS, GetColumnReadersMT)
 {
-   TMDFDataSource<TDummyDecoder> ds({"small.raw"});
+   TMDFDataSource<TDummyDecoder> ds({fname});
    ds.SetNSlots(4u);
    const std::vector<int **> readers = ds.GetColumnReaders<int>("dummy");
    EXPECT_EQ(readers.size(), 4u);
@@ -39,7 +41,7 @@ TEST(MDFDS, GetColumnReadersMT)
 
 TEST(MDFDS, SetEntry)
 {
-   TMDFDataSource<TDummyDecoder> ds({"small.raw"});
+   TMDFDataSource<TDummyDecoder> ds({fname});
    ds.SetNSlots(2);
    const auto readers = ds.GetColumnReaders<int>("dummy");
 
@@ -62,13 +64,13 @@ TEST(MDFDS, SetEntry)
 
 TEST(MDFTDF, MakeMDFDataFrame)
 {
-   auto tdf = MakeMDFDataFrame({"small.raw"});
-   auto tdf2 = MakeMDFDataFrame<TDummyDecoder>({"small.raw"});
+   auto tdf = MakeMDFDataFrame({fname});
+   auto tdf2 = MakeMDFDataFrame<TDummyDecoder>({fname});
 }
 
 void ReadHltVerticesImpl()
 {
-   auto tdf = MakeMDFDataFrame<THltVertexReportsDecoder>({"small.raw"});
+   auto tdf = MakeMDFDataFrame<THltVertexReportsDecoder>({fname});
    auto d = tdf.Define("x",
                        [](const THltVertexReports &pv) {
                           auto x = std::move(pv.x);

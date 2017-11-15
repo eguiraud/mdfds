@@ -12,6 +12,7 @@ add_google_test(mdfds_test mdfds_test.cxx)
 add_google_test(recordreader_test recordreader.cxx)
 add_google_test(hltvertexreports_test hltvertexreports.cxx)
 
-# copy dataset to binary dir
+# copy datasets to binary dir
 configure_file(${CMAKE_SOURCE_DIR}/tests/small.raw ${CMAKE_BINARY_DIR}/tests/small.raw COPYONLY)
+configure_file(${CMAKE_SOURCE_DIR}/tests/2krecords.raw ${CMAKE_BINARY_DIR}/tests/2krecords.raw COPYONLY)
 
