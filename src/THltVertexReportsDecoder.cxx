@@ -63,6 +63,7 @@ struct TPVInfo {
 void THltVertexReportsDecoder::Decode(const std::vector<char> &bank, void *destination) const
 {
    auto &vReps = *reinterpret_cast<THltVertexReports *>(destination);
+   // Clear contents of the THltVertexReports already present at destination
    vReps.ndof.clear();
    for (auto &v : {&vReps.x, &vReps.y, &vReps.z, &vReps.chi2, &vReps.cov_00, &vReps.cov_11, &vReps.cov_22, &vReps.cov_01,
                   &vReps.cov_02, &vReps.cov_12}) {
@@ -72,8 +73,7 @@ void THltVertexReportsDecoder::Decode(const std::vector<char> &bank, void *desti
    // Read the selection type
    auto &nSel = pun_to<unsigned int>(bank[0]);
    if (1U != nSel) {
-      std::cerr << "The number of HltVertexReports selections for this entry is not 1. Returning zero vertices."
-                << std::endl;
+      std::cerr << "The number of HltVertexReports selections for this entry is not 1. Returning zero vertices.\n";
       return;
    }
 
