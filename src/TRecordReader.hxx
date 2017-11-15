@@ -5,7 +5,7 @@
 
 #include <ROOT/RArrayView.hxx>
 
-#include <fstream> // std::filebuf
+#include <fstream> // std::ifstream
 #include <vector>
 
 struct BankHeader {
@@ -19,7 +19,7 @@ public:
    using pos_type = std::filebuf::pos_type;
 
 private:
-   std::filebuf fFileBuf;         ///< Stream buffer
+   std::ifstream fFileStream;     ///< Stream buffer
    pos_type fCurrentRecord = 0;   ///< Position of current record in file
    unsigned int fRecordSize = 0u; ///< Size of current record in bytes
    BankHeader fBankHeader;        ///< Header information for the current header

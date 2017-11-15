@@ -5,16 +5,16 @@
 
 TRecordReader::TRecordReader(const std::string &fname)
 {
-   const auto okay = fFileBuf.open(fname, std::ios_base::in);
-   if (!okay)
+   fFileStream.open(fname, std::ios_base::binary);
+   if (!fFileStream.good())
       throw std::runtime_error("could not open file " + fname);
 }
 
 bool TRecordReader::NextRecord()
 {
    fBankHeader = BankHeader(); // reset current bank header information
-   fCurrentRecord = fFileBuf.pubseekpos(fCurrentRecord + std::streamoff(fRecordSize));
-   if (fFileBuf.sgetc() == decltype(fFileBuf)::traits_type::eof())
+   fCurrentRecord = fFileStream.seekg(fCurrentRecord + std::streamoff(fRecordSize)).tellg();
+   if (fFileStream.peek() == decltype(fFileStream)::traits_type::eof())
       return false;
    fRecordSize = EvalRecordSize();
    if (fRecordSize == 0u) {
@@ -27,7 +27,7 @@ bool TRecordReader::NextRecord()
 bool TRecordReader::SeekRecordAt(pos_type pos)
 {
    fBankHeader = BankHeader();
-   fCurrentRecord = fFileBuf.pubseekpos(pos);
+   fCurrentRecord = fFileStream.seekg(pos).tellg();
    if (fCurrentRecord < 0) {
       std::cerr << "warning: invalid position passed to SeekRecordAt, aborting.\n";
       return false;
@@ -48,7 +48,7 @@ bool TRecordReader::NextBank()
       fRecordBody.clear();
       // N.B. this does not change the size of the vector, but we ignore that value, we just need enough storage
       fRecordBody.reserve(bodySize);
-      fFileBuf.sgetn(fRecordBody.data(), bodySize);
+      fFileStream.read(fRecordBody.data(), bodySize);
       // find first bank, i.e. first occurrence of the magic number
       fCurrentBank = 8u; // skip the general record header (20 bytes long)
       auto magic = pun_to<unsigned short>(fRecordBody[fCurrentBank]);
@@ -92,7 +92,7 @@ unsigned int TRecordReader::EvalRecordSize()
 {
    // TODO also check checksum
    std::array<unsigned int, 3> recordSizes;
-   fFileBuf.sgetn(reinterpret_cast<char *>(&recordSizes[0]), 12);
+   fFileStream.read(reinterpret_cast<char *>(&recordSizes[0]), 12);
 
    if (recordSizes[2] == recordSizes[0] || recordSizes[2] == recordSizes[1])
       return recordSizes[2];
