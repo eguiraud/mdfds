@@ -63,6 +63,11 @@ struct TPVInfo {
 void THltVertexReportsDecoder::Decode(const std::vector<char> &bank, void *destination) const
 {
    auto &vReps = *reinterpret_cast<THltVertexReports *>(destination);
+   vReps.ndof.clear();
+   for (auto &v : {&vReps.x, &vReps.y, &vReps.z, &vReps.chi2, &vReps.cov_00, &vReps.cov_11, &vReps.cov_22, &vReps.cov_01,
+                  &vReps.cov_02, &vReps.cov_12}) {
+      v->clear();
+   }
 
    // Read the selection type
    auto &nSel = pun_to<unsigned int>(bank[0]);
