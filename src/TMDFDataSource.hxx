@@ -52,6 +52,14 @@ public:
          throw std::invalid_argument("empty list of files");
    }
 
+   ~TMDFDataSource()
+   {
+      for (auto &colValues : fColumnValues) {
+         for (auto colInd = 0u; colInd < sizeof...(Decoders); ++colInd)
+            fDecoderPtrs[colInd]->Deallocate(colValues[colInd]);
+      }
+   }
+
    void SetNSlots(unsigned int nSlots) final
    {
       fNSlots = nSlots;
@@ -63,7 +71,7 @@ public:
       fColumnValues.resize(fNSlots);
       constexpr auto nColumns = std::tuple_size<decltype(fDecoders)>::value;
       for (auto &colValues : fColumnValues) {
-         colValues.resize(nColumns);
+         colValues.resize(nColumns, nullptr);
          for (auto colInd = 0u; colInd < nColumns; ++colInd)
             colValues[colInd] = fDecoderPtrs[colInd]->Allocate();
       }
