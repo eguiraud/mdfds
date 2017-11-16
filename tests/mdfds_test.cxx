@@ -1,5 +1,6 @@
 #include <TDummyDecoder.hxx>
 #include <TMDFDataSource.hxx>
+#include <THltVertexReports.hxx>
 #include <THltVertexReportsDecoder.hxx>
 
 #include <gtest/gtest.h>
