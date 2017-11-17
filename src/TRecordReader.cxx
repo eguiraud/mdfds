@@ -1,5 +1,6 @@
 #include "TRecordReader.hxx"
 #include "PunTo.hxx"
+#include <algorithm> // max
 #include <array>
 #include <iostream>
 
@@ -12,51 +13,72 @@ TRecordReader::TRecordReader(const std::string &fname)
 
 bool TRecordReader::NextRecord()
 {
-   fBankHeader = BankHeader(); // reset current bank header information
-   fCurrentRecord += std::streamoff(fRecordSize);
-   fFileStream.seekg(fCurrentRecord);
-   if (fFileStream.peek() == decltype(fFileStream)::traits_type::eof())
-      return false;
+   fBankHeader = BankHeader(); // invalidate current bank header information
+   constexpr auto headerSize = 20u;
+   const auto canReadHeader = (fRecordPos + fRecordSize + headerSize <= fBlobSize);
+   if (!canReadHeader) {
+      if (fFileStream.eof())
+         return false;
+      const auto nextRecordPos = GetRecordPosition() + std::streamoff(fRecordSize);
+      const auto nBytes = std::max(fBlobSize, 100ul * 1024 * 1024); // by default, read 100MB at a time
+      LoadBlob(nextRecordPos, nBytes);
+      fRecordPos = 0u;
+   } else {
+      fRecordPos += fRecordSize;
+   }
+
    fRecordSize = EvalRecordSize();
    if (fRecordSize == 0u) {
-      std::cerr << "warning: corrupted record encountered at position " << fCurrentRecord << ", aborting.\n";
+      std::cerr << "warning: corrupted record encountered at position " << GetRecordPosition() << ", aborting.\n";
       return false;
    }
+
+   const auto canReadRecord = (fRecordPos + fRecordSize <= fBlobSize);
+   if (!canReadRecord) {
+      const auto bytesToRead = std::max(fBlobSize, fRecordSize);
+      LoadBlob(GetRecordPosition(), bytesToRead);
+      fRecordPos = 0u;
+   }
+
    return true;
 }
 
 bool TRecordReader::SeekRecordAt(pos_type pos)
 {
    fBankHeader = BankHeader();
-   fCurrentRecord = pos;
-   fFileStream.seekg(fCurrentRecord);
-   if (fCurrentRecord < 0) {
-      std::cerr << "warning: invalid position passed to SeekRecordAt, aborting.\n";
-      return false;
-   }
+   fRecordPos = 0u;
+   fBankPos = 0u;
+   fFileStream.clear();
+
+   const auto nBytes = std::max(fBlobSize, 100ul * 1024 * 1024); // by default, read 100MB at a time
+   LoadBlob(pos, nBytes);
+
    fRecordSize = EvalRecordSize();
    if (fRecordSize == 0u) {
-      std::cerr << "warning: corrupted record encountered at position " << fCurrentRecord << ", aborting.\n";
+      std::cerr << "warning: corrupted record encountered at position " << GetRecordPosition() << ", aborting.\n";
       return false;
    }
+
+   if (fRecordSize > fBlobSize)
+      LoadBlob(GetRecordPosition(), fRecordSize);
+
    return true;
+}
+
+TRecordReader::pos_type TRecordReader::GetRecordPosition()
+{
+   return fLastReadPosition + std::streamoff(fRecordPos);
 }
 
 bool TRecordReader::NextBank()
 {
-   // the body size we load is the record size except the first three words, which have been read by EvalRecordSize
-   const auto bodySize = fRecordSize - 12;
    if (fBankHeader.size == 0u) { // first time we read banks in this record: load record in memory
-      fRecordBody.clear();
-      // N.B. this does not change the size of the vector, but we ignore that value, we just need enough storage
-      fRecordBody.reserve(bodySize);
-      fFileStream.read(fRecordBody.data(), bodySize);
       // find first bank, i.e. first occurrence of the magic number
-      fCurrentBank = 8u; // skip the general record header (20 bytes long)
-      auto magic = pun_to<unsigned short>(fRecordBody[fCurrentBank]);
-      while (magic != 0xcbcb && fCurrentBank < bodySize) {
-         fCurrentBank += 2;
-         magic = pun_to<unsigned short>(fRecordBody[fCurrentBank]);
+      fBankPos = fRecordPos + 20u; // skip the generic record header (20 bytes)
+      auto magic = pun_to<unsigned short>(fBlob[fBankPos]);
+      while (magic != 0xcbcb && fBankPos < fRecordPos + fRecordSize) {
+         fBankPos += 4;
+         magic = pun_to<unsigned short>(fBlob[fBankPos]);
       }
       if (magic != 0xcbcb) // no bank found
          return false;
@@ -64,37 +86,50 @@ bool TRecordReader::NextBank()
       // jump to next bank
       const auto bankSize = fBankHeader.size;
       const auto paddingBytes = (4 - (bankSize % 4)) % 4; // bytes required to make the next bank 32-bit aligned
-      fCurrentBank += bankSize + paddingBytes;
-      if (fCurrentBank >= bodySize)
+      fBankPos += bankSize + paddingBytes;
+      if (fBankPos >= fRecordPos + fRecordSize)
          return false;
    }
    fBankHeader = ReadBankHeader();
    if (fBankHeader.size == 0u) {
-      std::cerr << "warning: could not read bank header. skipping further banks in record at position "
-                << fCurrentRecord << '\n';
+      std::cerr << "warning: could not read bank header at position " << GetBankPosition()
+                << ". skipping further banks in this record\n";
       return false;
    }
    return true;
 }
 
+TRecordReader::pos_type TRecordReader::GetBankPosition()
+{
+   return fLastReadPosition + std::streamoff(fBankPos);
+}
+
 BankHeader TRecordReader::ReadBankHeader()
 {
-   auto &magic = pun_to<unsigned short>(fRecordBody[fCurrentBank]);
+   auto &magic = pun_to<unsigned short>(fBlob[fBankPos]);
    if (magic != 0xcbcb) {
       return BankHeader();
    }
    BankHeader h;
-   h.size = static_cast<int>(pun_to<unsigned short>(fRecordBody[fCurrentBank + 2]));
-   h.type = static_cast<EBankType>(fRecordBody[fCurrentBank + 4]);
-   h.version = static_cast<int>(fRecordBody[fCurrentBank + 5]);
+   h.size = static_cast<int>(pun_to<unsigned short>(fBlob[fBankPos + 2]));
+   h.type = static_cast<EBankType>(fBlob[fBankPos + 4]);
+   h.version = static_cast<int>(fBlob[fBankPos + 5]);
    return h;
+}
+
+void TRecordReader::LoadBlob(pos_type from, std::streamsize nBytes)
+{
+   fBlob.reserve(nBytes);
+   fFileStream.seekg(from);
+   fLastReadPosition = fFileStream.tellg();
+   fFileStream.read(fBlob.data(), nBytes);
+   fBlobSize = fFileStream.gcount();
 }
 
 unsigned int TRecordReader::EvalRecordSize()
 {
    // TODO also check checksum
-   std::array<unsigned int, 3> recordSizes;
-   fFileStream.read(reinterpret_cast<char *>(&recordSizes[0]), 12);
+   auto recordSizes = reinterpret_cast<unsigned int *>(&fBlob[fRecordPos]);
 
    if (recordSizes[2] == recordSizes[0] || recordSizes[2] == recordSizes[1])
       return recordSizes[2];
@@ -113,5 +148,5 @@ std::array_view<char> TRecordReader::GetBankBody()
       return {};
    }
 
-   return std::array_view<char>(&fRecordBody[fCurrentBank + 8], bankSize);
+   return std::array_view<char>(&fBlob[fBankPos + 8], bankSize);
 }
