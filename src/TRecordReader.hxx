@@ -34,6 +34,7 @@ public:
    TRecordReader &operator=(const TRecordReader &) = delete; // std::filebuf is not copy-assignable
    TRecordReader &operator=(TRecordReader &&) = default;
    explicit TRecordReader(const std::string &fname);
+   TRecordReader() = default;
    /// Move this RecordReader to the next valid record in the file. Return false if there are no further records.
    bool NextRecord();
    /// Move this RecordReader to the record at position pos.
