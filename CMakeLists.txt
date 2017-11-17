@@ -15,6 +15,8 @@ find_package(Threads REQUIRED)
 #---- FIND ROOT
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 find_package(ROOT REQUIRED COMPONENTS TreePlayer)
+#---Define useful ROOT functions and macros (e.g. ROOT_GENERATE_DICTIONARY)
+include(${ROOT_USE_FILE})
 
 #---- FIND GTEST OR DOWNLOAD IT AND COMPILE IT
 enable_testing()

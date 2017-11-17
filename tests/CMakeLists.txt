@@ -1,6 +1,6 @@
 function (add_google_test testname source)
 	add_executable(${testname} ${source})
-	target_link_libraries(${testname} mdfds ${ROOT_LIBRARIES} ${GTEST_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+	target_link_libraries(${testname} mdfdsDict ${ROOT_LIBRARIES} ${GTEST_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 	target_include_directories(${testname} PUBLIC ${CMAKE_SOURCE_DIR}/src ${ROOT_INCLUDE_DIRS})
 	if (EXTERNAL_GTEST)
 		add_dependencies(${testname} googletest)
