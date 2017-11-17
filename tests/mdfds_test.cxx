@@ -70,7 +70,7 @@ TEST(MDFTDF, MakeMDFDataFrame)
    auto tdf2 = MakeMDFDataFrame<TDummyDecoder>({fname});
 }
 
-void ReadHltVerticesImpl()
+void ReadHltVerticesImpl(const std::string &outfile)
 {
    // get a dataframe
    auto tdf_ = MakeMDFDataFrame<THltVertexReportsDecoder>({fname});
@@ -91,10 +91,10 @@ void ReadHltVerticesImpl()
    auto nHist = tdf.Define("n", [](const std::vector<float> &x) { return x.size(); }, {"x"}).Histo1D("n");
 
    // save x,y,z in a TTree
-   tdf.Snapshot("tree", "output.root", {"x", "y", "z"});
+   tdf.Snapshot("tree", outfile, {"x", "y", "z"});
 
    // save histograms to file
-   TFile f("output.root", "UPDATE");
+   TFile f(outfile.c_str(), "UPDATE");
    verticesHist->SetDirectory(&f);
    nHist->SetTitle("n vertices");
    nHist->SetName("n vertices");
@@ -104,14 +104,35 @@ void ReadHltVerticesImpl()
 
 TEST(MDFTDF, ReadHltVertices)
 {
-   ReadHltVerticesImpl();
+   ReadHltVerticesImpl("outfile.root");
 }
 
 
 TEST(MDFTDF, ReadHltVerticesMT)
 {
    ROOT::EnableImplicitMT();
-   ReadHltVerticesImpl();
+   ReadHltVerticesImpl("outfileMT.root");
+   ROOT::DisableImplicitMT();
+}
+
+TEST(MDFTDF, SnapshotHltVertexReports)
+{
+   auto tdf = MakeMDFDataFrame<THltVertexReportsDecoder>({fname});
+   TDF::TSnapshotOptions opts;
+   opts.fMode = "UPDATE";
+   gInterpreter->Declare("#include \"../include/THltVertexReports.hxx\"");
+   tdf.Filter("HltVertexReports.x.size() > 1")
+      .Snapshot<THltVertexReports>("hltvertices", "outfile.root", {"HltVertexReports"}, opts);
+}
+
+TEST(MDFTDF, SnapshotHltVertexReportsMT)
+{
+   ROOT::EnableImplicitMT();
+   auto tdf = MakeMDFDataFrame<THltVertexReportsDecoder>({fname});
+   TDF::TSnapshotOptions opts;
+   opts.fMode = "UPDATE";
+   gInterpreter->Declare("#include \"../include/THltVertexReports.hxx\"");
+   tdf.Snapshot("hltvertices", "outfileMT.root", "HltVertexReports", opts);
    ROOT::DisableImplicitMT();
 }
 
