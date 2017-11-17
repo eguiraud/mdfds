@@ -30,9 +30,8 @@ class TMDFDataSource : public ROOT::Experimental::TDF::TDataSource {
    const std::vector<std::string> fFileNames;
    /// Index of the current file being processed in fFileNames
    std::size_t fCurrentFile = std::numeric_limits<std::size_t>::max();
-   /// The entry number at which new entry ranges should start
-   /// Corresponds to the last entry of the previous batch of entry ranges
-   ULong64_t fEntryOffset = 0ul;
+   /// Position, in the current file, of the next record header. 0 if we should switch to a new file
+   TRecordReader::pos_type fNextRecordPosition = 0u;
    /// Per-slot record readers
    std::vector<TRecordReader> fRecordReaders;
    /// Per-slot pointers to column values. Use as fColumnValues[slot][columnIndex].
@@ -64,9 +63,7 @@ public:
    {
       fNSlots = nSlots;
 
-      fRecordReaders.reserve(fNSlots);
-      for (auto i = 0u; i < fNSlots; ++i)
-         fRecordReaders.emplace_back(fFileNames[0]);
+      fRecordReaders.resize(fNSlots);
 
       fColumnValues.resize(fNSlots);
       constexpr auto nColumns = std::tuple_size<decltype(fDecoders)>::value;
@@ -94,26 +91,31 @@ public:
 
    std::vector<std::pair<ULong64_t, ULong64_t>> GetEntryRanges() final
    {
-      // Create a new range every ~1GB. Each TDF task will process ~1GB of records (typically only reading parts of it)
-      return GetEntryRanges(/*minRangesize=*/1024 * 1024 * 1024);
+      // Create a new range every 100MB or less.
+      // 100MB is a good value because it's what TRecordReader loads in memory at a time by default
+      return GetEntryRanges(/*maxRangeSize=*/100 * 1024 * 1024);
    }
 
-   std::vector<std::pair<ULong64_t, ULong64_t>> GetEntryRanges(TRecordReader::pos_type minRangeSize)
+   std::vector<std::pair<ULong64_t, ULong64_t>> GetEntryRanges(TRecordReader::pos_type maxRangesize)
    {
-      // TODO: smarter division of records in entry ranges
-      // get the next file, count records, return fNSlots different ranges
-      fCurrentFile = fCurrentFile == std::numeric_limits<std::size_t>::max() ? 0u : fCurrentFile + 1u;
-      if (fCurrentFile >= fFileNames.size())
-         return {}; // no more files to process
+      if (fNextRecordPosition == 0u) {
+         // must switch to a new file
+         fCurrentFile = fCurrentFile == std::numeric_limits<std::size_t>::max() ? 0u : fCurrentFile + 1u;
+         if (fCurrentFile >= fFileNames.size())
+            return {}; // no more files to process, no more entry ranges
 
-      TRecordReader r(fFileNames[fCurrentFile]);
-      fEntryPositions.clear();
-      fEntryPositions[fEntryOffset] = 0;
+         for (auto &r : fRecordReaders)
+            r = TRecordReader(fFileNames[fCurrentFile]);
+      }
+
       std::vector<std::pair<ULong64_t, ULong64_t>> entryRanges;
-      TRecordReader::pos_type rangeStartPos = 0;
+      TRecordReader::pos_type rangesStart = fNextRecordPosition; // beginning position of this set of ranges in file
+      std::streamoff rangeOffset = 0; // offset of the beginning position of current range w.r.t. rangesStart
       auto recordsInRange = 0u;
 
-      while (r.NextRecord()) {
+      TRecordReader &r = fRecordReaders[0];
+      r.SeekRecordAt(rangesStart);
+      do {
          const auto recordPos = r.GetRecordPosition();
          if (recordPos - rangeStartPos > minRangeSize) {
             entryRanges.emplace_back(fEntryOffset, fEntryOffset + recordsInRange);
@@ -121,14 +123,12 @@ public:
             fEntryOffset += recordsInRange;
             fEntryPositions[fEntryOffset] = rangeStartPos;
             recordsInRange = 0u;
+         } else {
+            break; // FIXME is this correct?
          }
          ++recordsInRange;
-      }
-      // deal with last records
-      if (recordsInRange > 0u) {
-         entryRanges.emplace_back(fEntryOffset, fEntryOffset + recordsInRange); // TOCHECK!
-         fEntryOffset += recordsInRange;
-      }
+        // TODO set fNextRecordPosition, deal with eof
+      } while (fNextRecordPosition != 0 && fNextRecordPosition - rangesStart < maxRangesize);
       return entryRanges;
    }
 
