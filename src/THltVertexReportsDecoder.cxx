@@ -16,6 +16,7 @@ EBankType THltVertexReportsDecoder::GetID() const
    return EBankType::HltVertexReports;
 }
 
+// N.B. this struct is assumed to be packed -- true on most sane systems where all its elements will be 4 bytes  
 struct TPVInfo {
    float x;
    float y;
