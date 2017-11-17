@@ -1,7 +1,7 @@
 #ifndef TRECORDREADER
 #define TRECORDREADER
 
-#include "BankTypes.h"
+#include "BankTypes.hxx"
 
 #include <ROOT/RArrayView.hxx>
 

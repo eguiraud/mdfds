@@ -1,4 +1,4 @@
-#include <BankTypes.h>
+#include <BankTypes.hxx>
 #include <THltVertexReports.hxx>
 #include <THltVertexReportsDecoder.hxx>
 #include <TRecordReader.hxx>

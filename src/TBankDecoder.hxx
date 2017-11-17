@@ -1,7 +1,7 @@
 #ifndef TBANKDECODER
 #define TBANKDECODER
 
-#include "BankTypes.h"
+#include "BankTypes.hxx"
 
 #include <ROOT/RArrayView.hxx>
 
