@@ -1,0 +1,12 @@
+- currently TMDFDataSource does not reset after the first run, crashing on a second run
+- multi-thread reading can be improved
+    currently we do a first sequential pass, then distribute pieces to worker threads
+    branch dev changes the access pattern so that we do small sequential passes and then work on hot cache with the worker threads
+    it would be even better to memory map everything once
+    or to start each thread at a different point in the file and move from there (but this would require changes in TDF)
+- bank 55 (HltVertexReports) is present twice in each record and we read it twice
+- I don't think the values of a column are resent upon switching entry, meaning that if a bank is missing in a record the "old" value is used. this is a bug
+- in general the algorithm to read the banks can be improved
+    currently we go through the banks and if they have a known ID we read them in
+    if the whole record is in memory it might be ok (performance-wise) and easier (logic-wise) to loop over the known IDs and go for the bank for each of them
+      I think this latter method is more lazy-friendly
